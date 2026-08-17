@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>投行移动端收入确认及收入切分审批流程 PRD V1.4</title>
+  <style>
+    :root {
+      --ink: #142033;
+      --muted: #667085;
+      --line: #d8e0ea;
+      --paper: #f4f7fa;
+      --white: #ffffff;
+      --navy: #0b3b70;
+      --blue: #1769aa;
+      --cyan: #0d91a6;
+      --orange: #d97821;
+      --green: #2d7c63;
+      --red: #b84343;
+      --soft-blue: #eaf3fb;
+      --soft-cyan: #e8f6f7;
+      --soft-orange: #fff2e7;
+      --soft-green: #eaf5f0;
+      --shadow: 0 14px 38px rgba(23, 49, 77, .08);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(90deg, rgba(11,59,112,.025) 1px, transparent 1px),
+        linear-gradient(rgba(11,59,112,.025) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+    }
+
+    a { color: inherit; }
+    button { font: inherit; }
+    code { color: #185e83; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; }
+
+    .document-shell {
+      display: grid;
+      grid-template-columns: 238px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 28px 22px;
+      color: #dce9f6;
+      background: #102b49;
+      border-right: 1px solid rgba(255,255,255,.08);
+      overflow-y: auto;
+    }
+
+    .brand-mark {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding-bottom: 22px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+
+    .brand-seal {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--orange);
+      font: 700 16px/1 "Songti SC", serif;
+      border-radius: 4px;
+    }
+
+    .brand-mark strong { display: block; font-size: 13px; color: #fff; }
+    .brand-mark span { font-size: 10px; letter-spacing: .12em; color: #9bb5ce; }
+    .nav-label { margin: 24px 0 10px; color: #7695b3; font-size: 10px; font-weight: 700; letter-spacing: .18em; }
+    .sidebar nav { display: grid; gap: 4px; }
+    .sidebar nav a {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 10px;
+      color: #b8cce0;
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      font-size: 12px;
+      transition: .18s ease;
+    }
+    .sidebar nav a span { width: 21px; color: #6f91af; font-variant-numeric: tabular-nums; }
+    .sidebar nav a:hover,
+    .sidebar nav a.active { color: #fff; background: rgba(255,255,255,.06); border-left-color: #58c1d0; }
+    .prototype-nav-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 10px 12px;
+      color: #fff;
+      background: rgba(13,145,166,.16);
+      border: 1px solid rgba(88,193,208,.42);
+      border-radius: 3px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      transition: .18s ease;
+    }
+    .prototype-nav-link::after { content: "↗"; color: #7ed5e0; font-size: 14px; }
+    .prototype-nav-link:hover { background: rgba(13,145,166,.28); border-color: #58c1d0; }
+    .prototype-nav-link:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    .sidebar-foot {
+      margin-top: 26px;
+      padding: 12px;
+      color: #9bb5ce;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      font-size: 10px;
+    }
+
+    main { min-width: 0; }
+    .hero {
+      position: relative;
+      padding: 66px clamp(28px, 5vw, 78px) 54px;
+      color: #fff;
+      background:
+        radial-gradient(circle at 86% 18%, rgba(36,175,190,.22), transparent 28%),
+        linear-gradient(125deg, #0b3158, #0a456d 58%, #0c5c72);
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "MOBILE APPROVAL PRODUCT REQUIREMENTS";
+      position: absolute;
+      right: -70px;
+      bottom: 18px;
+      color: rgba(255,255,255,.055);
+      font: 700 34px/1 "Times New Roman", serif;
+      letter-spacing: .08em;
+      transform: rotate(-4deg);
+      white-space: nowrap;
+    }
+    .eyebrow {
+      display: inline-flex;
+      gap: 9px;
+      align-items: center;
+      margin-bottom: 18px;
+      color: #a9ddea;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .16em;
+    }
+    .eyebrow::before { content: ""; width: 32px; height: 2px; background: var(--orange); }
+    h1 {
+      max-width: 900px;
+      margin: 0;
+      font: 700 clamp(30px, 4vw, 52px)/1.22 "Songti SC", "STSong", serif;
+      letter-spacing: -.02em;
+    }
+    .hero-summary { max-width: 880px; margin: 22px 0 0; color: #c8dced; font-size: 15px; }
+    .meta-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 34px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,.14);
+      color: #a9c2d7;
+      font-size: 11px;
+    }
+    .meta-strip strong { margin-left: 5px; color: #fff; font-weight: 500; }
+    .print-button {
+      position: absolute;
+      top: 24px;
+      right: 30px;
+      padding: 8px 14px;
+      color: #fff;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .content { width: min(1120px, calc(100% - 56px)); margin: 0 auto; padding: 44px 0 90px; }
+    section { scroll-margin-top: 24px; margin-bottom: 54px; }
+    .section-heading { display: grid; grid-template-columns: 56px 1fr; align-items: end; gap: 14px; margin-bottom: 20px; }
+    .section-no { padding-bottom: 4px; color: var(--orange); border-bottom: 3px solid var(--orange); font: 700 19px/1 "Times New Roman", serif; }
+    h2 { margin: 0; color: #14375b; font: 700 28px/1.2 "Songti SC", "STSong", serif; }
+    h3 { margin: 0 0 10px; color: #17456c; font-size: 16px; }
+    h4 { margin: 0 0 8px; color: #315777; font-size: 13px; }
+    p { margin: 0 0 10px; }
+    .lead { color: #3e5368; font-size: 15px; }
+    .subheading { margin: 30px 0 14px; color: #17456c; font: 700 19px/1.35 "Songti SC", serif; }
+
+    .decision-banner {
+      display: grid;
+      grid-template-columns: 116px 1fr;
+      gap: 20px;
+      align-items: center;
+      margin-top: 22px;
+      padding: 22px 24px;
+      background: var(--white);
+      border: 1px solid #cbd9e7;
+      border-left: 5px solid var(--orange);
+      box-shadow: var(--shadow);
+    }
+    .decision-banner strong { color: var(--orange); font: 700 18px/1.2 "Songti SC", serif; }
+    .decision-banner p { margin: 0; color: #31485e; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .pill { padding: 5px 10px; color: #31506d; background: #edf3f8; border: 1px solid #d6e1eb; border-radius: 999px; font-size: 11px; }
+
+    .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .info-card { padding: 20px; background: #fff; border: 1px solid var(--line); box-shadow: 0 7px 20px rgba(26,54,81,.04); }
+    .info-card.blue { border-top: 4px solid var(--blue); }
+    .info-card.orange { border-top: 4px solid var(--orange); }
+    .info-card.green { border-top: 4px solid var(--green); }
+    .info-card.cyan { border-top: 4px solid var(--cyan); }
+    .info-card p { color: #5d7183; font-size: 12px; }
+    .info-card ul { margin: 0; padding-left: 19px; color: #4d6276; font-size: 12px; }
+    .info-card li + li { margin-top: 7px; }
+    .scope-tag { display: inline-block; margin-bottom: 10px; padding: 3px 7px; font-size: 9px; font-weight: 700; letter-spacing: .08em; }
+    .scope-tag.in { color: var(--green); background: var(--soft-green); }
+    .scope-tag.out { color: #8a4a20; background: var(--soft-orange); }
+
+    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .role-card { position: relative; padding: 20px; background: #fff; border: 1px solid var(--line); }
+    .role-card::after { content: attr(data-code); position: absolute; top: 12px; right: 14px; color: #d6e0e9; font: 700 24px/1 "Times New Roman", serif; }
+    .role-card strong { display: block; color: #17456c; font-size: 15px; }
+    .role-card small { display: block; margin: 3px 0 12px; color: var(--orange); }
+    .role-card p { color: #5d7183; font-size: 11px; }
+
+    .rule-stack { display: grid; gap: 10px; }
+    .rule-row { display: grid; grid-template-columns: 110px 1fr; gap: 18px; padding: 15px 17px; background: #fff; border-left: 4px solid var(--blue); }
+    .rule-row b { color: #18537f; font-size: 11px; }
+    .rule-row span { color: #52677b; font-size: 12px; }
+    .rule-row.orange { border-left-color: var(--orange); }
+    .rule-row.orange b { color: #8a542a; }
+    .rule-row.green { border-left-color: var(--green); }
+    .rule-row.green b { color: var(--green); }
+
+    .tabs-map { display: grid; grid-template-columns: repeat(4, 1fr); background: #fff; border: 1px solid var(--line); }
+    .tab-map { min-height: 138px; padding: 17px; border-right: 1px solid var(--line); }
+    .tab-map:last-child { border-right: 0; }
+    .tab-map b { display: block; color: var(--blue); font-size: 14px; }
+    .tab-map p { color: #5f7285; font-size: 11px; }
+    .tab-map em { display: inline-block; padding: 2px 7px; color: #476077; background: #edf2f6; font-size: 9px; font-style: normal; }
+
+    .table-wrap { overflow-x: auto; background: #fff; border: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; font-size: 12px; }
+    th { padding: 12px 14px; color: #e9f2fa; background: #153c61; text-align: left; font-weight: 600; white-space: nowrap; }
+    td { padding: 12px 14px; color: #42576b; border-bottom: 1px solid #e5ebf1; vertical-align: top; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: #f8fbfd; }
+    .compact-table table { min-width: 620px; }
+    .status-ok { color: var(--green); font-weight: 700; }
+    .status-no { color: var(--red); font-weight: 700; }
+
+    .operation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .operation { padding: 20px; background: #fff; border: 1px solid var(--line); }
+    .operation .op-no { color: var(--orange); font: 700 11px/1 "Times New Roman", serif; }
+    .operation h3 { margin-top: 8px; }
+    .operation p { color: #5d7183; font-size: 11px; }
+    .operation .button-demo { display: flex; gap: 7px; margin-top: 14px; }
+    .button-demo span { flex: 1; padding: 7px 10px; text-align: center; border: 1px solid #b9c8d6; color: #4d6174; font-size: 10px; }
+    .button-demo span.primary { color: #fff; background: var(--blue); border-color: var(--blue); }
+
+    .data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .data-item { display: grid; grid-template-columns: 160px 1fr; gap: 12px; padding: 14px 16px; background: #fff; border: 1px solid var(--line); }
+    .data-item code { font-weight: 700; }
+    .data-item strong { color: #185e83; font-size: 11px; }
+    .data-item span { color: #64778a; font-size: 11px; }
+
+    details { background: #fff; border: 1px solid var(--line); }
+    details + details { margin-top: 10px; }
+    summary { cursor: pointer; padding: 14px 18px; color: #17456c; font-size: 13px; font-weight: 700; list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; float: right; color: var(--orange); font-size: 18px; line-height: 1; }
+    details[open] summary::after { content: "−"; }
+    .details-body { padding: 0 18px 18px; color: #52677b; font-size: 12px; }
+    .details-body ul { margin: 0; padding-left: 19px; }
+    .details-body li + li { margin-top: 6px; }
+
+    .risk-list { display: grid; gap: 8px; }
+    .risk-item { display: grid; grid-template-columns: 190px 1fr; gap: 18px; padding: 13px 16px; background: #fff; border-left: 4px solid var(--red); }
+    .risk-item b { color: #7a3540; font-size: 12px; }
+    .risk-item span { color: #53687a; font-size: 12px; }
+
+    .acceptance-toolbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 12px; }
+    .acceptance-toolbar p { margin: 0; color: var(--muted); font-size: 11px; }
+    .acceptance-toolbar button { padding: 7px 11px; color: #17456c; background: #fff; border: 1px solid #cbd9e7; cursor: pointer; }
+    .acceptance-group { margin-top: 12px; }
+    .acceptance-group table { min-width: 820px; }
+    .acceptance-group td:first-child { width: 68px; color: var(--orange); font-weight: 700; font-family: "Times New Roman", serif; }
+
+    .footer { padding: 24px clamp(28px, 5vw, 78px); color: #9fb3c7; background: #102b49; font-size: 10px; }
+    .footer strong { color: #fff; }
+
+    @media (max-width: 1050px) {
+      .document-shell { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; padding: 18px 24px; }
+      .sidebar nav { display: flex; overflow-x: auto; padding-bottom: 6px; }
+      .sidebar nav a { min-width: max-content; border-left: 0; border-bottom: 2px solid transparent; }
+      .sidebar nav a:hover, .sidebar nav a.active { border-left: 0; border-bottom-color: #58c1d0; }
+      .nav-label, .sidebar-foot { display: none; }
+      .brand-mark { padding-bottom: 14px; }
+      .role-grid, .operation-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .hero { padding: 54px 22px 38px; }
+      .print-button { top: 14px; right: 16px; }
+      .content { width: min(100% - 28px, 1120px); padding-top: 30px; }
+      .card-grid, .role-grid, .operation-grid, .data-grid { grid-template-columns: 1fr; }
+      .tabs-map { grid-template-columns: 1fr; }
+      .tab-map { border-right: 0; border-bottom: 1px solid var(--line); }
+      .tab-map:last-child { border-bottom: 0; }
+      .decision-banner { grid-template-columns: 1fr; gap: 8px; }
+      .rule-row, .risk-item, .data-item { grid-template-columns: 1fr; gap: 5px; }
+      .acceptance-toolbar { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media print {
+      body { background: #fff; font-size: 10pt; }
+      .document-shell { display: block; }
+      .sidebar, .print-button, .acceptance-toolbar button { display: none !important; }
+      .hero { padding: 32px 34px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .content { width: 100%; padding: 26px 0; }
+      section { margin-bottom: 30px; }
+      .info-card, .role-card, .operation, table, details { break-inside: avoid; }
+      details:not([open]) .details-body { display: block; }
+      .footer { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <div class="document-shell">
+    <aside class="sidebar">
+      <div class="brand-mark">
+        <div class="brand-seal">投</div>
+        <div><strong>移动财务审批 PRD</strong><span>PRODUCT REQUIREMENTS</span></div>
+      </div>
+      <div class="nav-label">DOCUMENT INDEX</div>
+      <nav aria-label="文档目录">
+        <a href="#overview"><span>01</span>文档概览</a>
+        <a href="#scope"><span>02</span>范围与开发边界</a>
+        <a href="#roles"><span>03</span>目标与审批角色</a>
+        <a href="#common"><span>04</span>公共待办接入</a>
+        <a href="#confirm"><span>05</span>收入确认需求</a>
+        <a href="#split"><span>06</span>收入切分需求</a>
+        <a href="#approval"><span>07</span>审批处理规则</a>
+        <a href="#interfaces"><span>08</span>接口、安全与审计</a>
+        <a href="#exceptions"><span>09</span>异常处理</a>
+        <a href="#acceptance"><span>10</span>验收场景</a>
+      </nav>
+      <a class="prototype-nav-link" href="./qw_income_split_approval.html" target="_blank" rel="noopener">打开交互原型</a>
+      <div class="sidebar-foot">本文档面向投行平台移动端和投行 CRM 移动端开发。分支机构审批仅说明接入边界。</div>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <button class="print-button" type="button" onclick="window.print()">打印 / 导出PDF</button>
+        <div class="eyebrow">投行财务流程 · 移动端产品需求</div>
+        <h1>投行移动端收入确认及<br>收入切分审批流程 PRD</h1>
+        <p class="hero-summary">定义投行平台统一待办接入、投行 CRM 移动端业务详情、审批记录、单笔/批量审批及状态刷新规则。业务填报、流程编排和分支机构审批不在本文档功能设计范围内。</p>
+        <div class="meta-strip">
+          <span>文档版本<strong>V1.4</strong></span>
+          <span>编制日期<strong>2026-08-05</strong></span>
+          <span>产品范围<strong>投行平台移动端、投行 CRM 移动端</strong></span>
+          <span>关联原型<strong>qw_income_split_approval.html</strong></span>
+        </div>
+      </header>
+
+      <div class="content">
+        <section id="overview">
+          <div class="section-heading"><div class="section-no">01</div><h2>文档概览</h2></div>
+          <p class="lead">本需求通过投行平台统一待办接入收入确认、收入切分任务，由投行 CRM 移动端承接业务详情和审批处理，为项目负责人、部组负责人提供详情查看、单笔或批量审批及审批记录查询能力。</p>
+          <div class="decision-banner">
+            <strong>核心原则</strong>
+            <p><b>服务端是任务、业务数据、可用操作和流程状态的唯一权威来源。</b>投行 CRM 移动端不修改业务数据，不自行计算下一审批人，不推断审批记录节点。</p>
+          </div>
+          <div class="pill-row">
+            <span class="pill">统一待办入口 → 投行平台</span>
+            <span class="pill">业务详情与审批 → 投行CRM移动端</span>
+            <span class="pill">填报与转办 → PC端</span>
+            <span class="pill">流程状态 → 服务端统一控制</span>
+          </div>
+          <h3 class="subheading">项目协作职责</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>角色/团队</th><th>主要责任</th><th>边界说明</th></tr></thead>
+              <tbody>
+                <tr><td>业务牵头部门</td><td>确认业务规则、角色口径及验收结果</td><td>投行运管总部财务绩效团队</td></tr>
+                <tr><td>产品经理</td><td>需求澄清、原型及 PRD 维护、跨团队协调</td><td>信息技术部</td></tr>
+                <tr><td>投行 CRM PC端及后台团队</td><td>提供流程、任务、详情、审批记录及审批处理接口</td><td>业务数据、任务状态和流程引擎权威来源</td></tr>
+                <tr><td>投行平台移动端团队</td><td>提供统一待办列表、公共筛选及详情路由</td><td>不承载收入业务详情</td></tr>
+                <tr><td>投行 CRM 移动端团队</td><td>实现详情、审批记录、单笔/批量审批及异常提示</td><td>不承载业务编辑和流程编排</td></tr>
+                <tr><td>测试及业务验收人员</td><td>覆盖角色、详情、审批、权限和异常场景</td><td>上线前形成测试账号矩阵</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="scope">
+          <div class="section-heading"><div class="section-no">02</div><h2>范围与开发边界</h2></div>
+          <div class="card-grid">
+            <article class="info-card green">
+              <span class="scope-tag in">本期包含</span>
+              <h3>投行移动审批能力</h3>
+              <ul>
+                <li>投行平台统一待办接入、筛选、状态分类和详情路由。</li>
+                <li>收入确认、收入切分待办详情和只读业务数据。</li>
+                <li>审批记录查询、单笔同意和退回。</li>
+                <li>部组负责人收入切分批量同意和批量退回。</li>
+                <li>历史收入切分明细和历史详情查询。</li>
+                <li>权限校验、防重复提交、状态刷新和异常提示。</li>
+                <li>科目 6421 支出类收入确认任务展示与审批。</li>
+              </ul>
+            </article>
+            <article class="info-card orange">
+              <span class="scope-tag out">本期不包含</span>
+              <h3>PC填报与其他系统功能</h3>
+              <ul>
+                <li>收入采集、流程触发、新建、保存和重新送审。</li>
+                <li>项目、发行代码、切分比例和员工贡献度维护。</li>
+                <li>业务信息修改、转办和审批人计算。</li>
+                <li>流程配置、分支任务生成和流程汇聚判断。</li>
+                <li>分支机构审批待办、详情和零售 CRM 功能设计。</li>
+                <li>传阅任务；公共页签保留时本流程数据为空。</li>
+              </ul>
+            </article>
+          </div>
+          <h3 class="subheading">关键约束</h3>
+          <div class="rule-stack">
+            <div class="rule-row"><b>权威数据</b><span>任务状态、当前处理人、可用操作和下一节点均以服务端返回为准。</span></div>
+            <div class="rule-row"><b>只读展示</b><span>财务、项目、发行代码、切分方案及员工贡献数据在移动端均不可编辑。</span></div>
+            <div class="rule-row"><b>提交校验</b><span>用户确认同意或退回时，移动端提交当前审批任务信息；服务端结合登录用户及任务最新状态校验该任务是否仍可处理。校验失败时返回明确原因，移动端停止提交并刷新任务状态。</span></div>
+            <div class="rule-row orange"><b>流程边界</b><span>移动端不推断下一节点、退回对象、跨系统流转或最终办结条件。</span></div>
+          </div>
+          <div class="decision-banner">
+            <strong>跨系统概述</strong>
+            <p>投行内部审批完成且需要分支机构审批时，由投行 CRM 服务端生成分支审批任务并同步至零售 CRM；结果回传后由服务端继续推进、退回或结束流程。投行 CRM 移动端不展示和处理分支审批任务，只更新在办或办结状态。</p>
+          </div>
+        </section>
+
+        <section id="roles">
+          <div class="section-heading"><div class="section-no">03</div><h2>目标与审批角色</h2></div>
+          <div class="role-grid">
+            <article class="role-card" data-code="A"><strong>收入确认 · 项目负责人</strong><small>单笔审批</small><p>查看详情和审批记录，执行同意或退回。</p></article>
+            <article class="role-card" data-code="B"><strong>收入切分 · 项目负责人</strong><small>单笔审批</small><p>核对收入及切分明细，执行同意或退回。</p></article>
+            <article class="role-card" data-code="C"><strong>收入切分 · 部组负责人</strong><small>单笔 / 批量审批</small><p>处理当前节点任务；符合条件时使用批量审批。</p></article>
+          </div>
+          <h3 class="subheading">权限原则</h3>
+          <div class="rule-stack">
+            <div class="rule-row"><b>待办</b><span>仅展示当前处理人为登录用户的任务。</span></div>
+            <div class="rule-row"><b>在办</b><span>当前用户已参与、流程未结束且当前处理人不是当前用户。</span></div>
+            <div class="rule-row"><b>办结</b><span>流程已结束且当前用户具有查看权限。</span></div>
+            <div class="rule-row green"><b>最终权限</b><span>列表可见不代表可以审批，提交时仍由服务端校验任务归属、版本和可用操作。</span></div>
+          </div>
+        </section>
+
+        <section id="common">
+          <div class="section-heading"><div class="section-no">04</div><h2>公共待办接入</h2></div>
+          <p class="lead">待办列表由投行平台公共组件承载。本流程按统一字段接入，不新增独立入口，也不在列表照搬PC端业务字段。</p>
+          <div class="tabs-map">
+            <div class="tab-map"><b>待办</b><p>审批中，当前处理人为登录用户。</p><em>去处理</em></div>
+            <div class="tab-map"><b>在办</b><p>用户已参与但流程尚未结束。</p><em>查看</em></div>
+            <div class="tab-map"><b>办结</b><p>流程已结束且用户有查看权限。</p><em>查看</em></div>
+            <div class="tab-map"><b>传阅</b><p>公共组件保留，本流程不产生数据。</p><em>空状态</em></div>
+          </div>
+          <div class="note-box" style="margin-top:14px;padding:16px 18px;color:#6b4b24;background:#fff8e8;border:1px solid #edd9ab;font-size:12px;"><b>状态映射：</b>PC端“已办”在移动端按流程状态拆分；流程未结束进入“在办”，流程已结束进入“办结”。</div>
+
+          <h3 class="subheading">COMMON-001 ～ COMMON-005</h3>
+          <div class="rule-stack">
+            <div class="rule-row"><b>列表初始化</b><span>默认待办、全部待办、最新到达优先；每页20条，滚动加载；数量按当前筛选条件统计。</span></div>
+            <div class="rule-row"><b>主题搜索</b><span>搜索提示语为“主题”；输入关键词后，对当前用户有权查看的流程内全部字段要素进行模糊匹配，包括文本、编号、人员、金额和日期等内容。搜索范围及结果由服务端统一返回。</span></div>
+            <div class="rule-row"><b>来源分类</b><span>收入确认和收入切分按统一待办来源标识为“投行”。</span></div>
+            <div class="rule-row"><b>高级筛选</b><span>支持流程类型、发起人和任务到达时间范围；发起人映射实际提交进入审批环节的人员。</span></div>
+            <div class="rule-row"><b>排序</b><span>支持“最新到达优先”和“最久等待优先”；后者按任务到达当前节点时间正序。</span></div>
+          </div>
+
+          <h3 class="subheading">列表卡片字段</h3>
+          <div class="table-wrap compact-table">
+            <table>
+              <thead><tr><th>区域</th><th>字段</th><th>展示规则</th></tr></thead>
+              <tbody>
+                <tr><td>首行</td><td>业务标签、项目名称</td><td>标签显示“投行”；项目名称为主标题。</td></tr>
+                <tr><td>第二行</td><td>流程类型、发起人</td><td>流程类型显示收入确认/收入切分申请流程；发起人为实际提交人。</td></tr>
+                <tr><td>第三行</td><td>当前节点、时间</td><td>显示服务端当前节点和任务到达当前节点时间。</td></tr>
+                <tr><td>右侧</td><td>操作</td><td>待办“去处理”；在办/办结“查看”。</td></tr>
+                <tr><td>不展示</td><td>凭证号、金额、摘要等</td><td>详细业务字段移至投行 CRM 移动端详情。</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="confirm">
+          <div class="section-heading"><div class="section-no">05</div><h2>收入确认需求</h2></div>
+          <p class="lead">移动端仅接收服务端已生成并分配给当前用户的收入确认任务，不执行收入扫描、流程触发、项目关联、信息补充、提交或转办。</p>
+          <div class="card-grid">
+            <article class="info-card blue">
+              <h3>CONFIRM-001 顶部流程卡片</h3>
+              <ul>
+                <li>展示流程类型、项目名称、状态印章、发起人和发起时间。</li>
+                <li>状态映射：审批中“处理中”、审批完成“已完成”、退回“已退回”。</li>
+                <li>发起人使用服务端实际提交人，不以项目负责人替代。</li>
+              </ul>
+            </article>
+            <article class="info-card cyan">
+              <h3>CONFIRM-003 审批记录</h3>
+              <ul>
+                <li>按处理时间倒序展示节点名称、处理人和处理时间。</li>
+                <li>仅退回节点展示审批意见，其他节点不显示意见区域。</li>
+                <li>“定时任务开启流程”等初始节点按服务端记录展示。</li>
+              </ul>
+            </article>
+          </div>
+          <h3 class="subheading">CONFIRM-002 明细字段</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>分组</th><th>字段</th><th>业务规则</th></tr></thead>
+              <tbody>
+                <tr><td>收入信息</td><td>凭证号、科目、收入金额、收入归属部组、收入日期、摘要、辅助核算项—投行项目、备注</td><td>字段只读；金额使用千分位、两位小数及“元”。</td></tr>
+                <tr><td>项目信息</td><td>项目名称、项目编号、项目类型、发行代码</td><td>按所列顺序展示；发行代码仅在有有效值时显示。</td></tr>
+                <tr><td>隐藏规则</td><td>发行代码</td><td>非股非债项目或接口无有效值时隐藏，不显示空行或项目规模分组。</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="split">
+          <div class="section-heading"><div class="section-no">06</div><h2>收入切分需求</h2></div>
+          <p class="lead">项目负责人、部组负责人处理服务端实际下发的收入切分待办。移动端不执行业务信息填报、修改、转办或重新送审。</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>分组</th><th>字段/内容</th><th>展示重点</th></tr></thead>
+              <tbody>
+                <tr><td>流程基本信息</td><td>流程文号、确认人、申请部门、申请日期</td><td>全部只读。</td></tr>
+                <tr><td>收入信息</td><td>凭证号、收入金额、预估支出金额、摘要、辅助核算项—投行项目</td><td>摘要、辅助核算项和项目编号不得相互替代。</td></tr>
+                <tr><td>项目信息</td><td>项目名称、项目编号、项目类型</td><td>按所列顺序展示。</td></tr>
+                <tr><td>项目已完成收入切分明细</td><td>凭证号、主办部门及比例、协办部门及比例、分支机构及比例、操作</td><td>默认折叠；“操作”列明确展示“详情”。</td></tr>
+                <tr><td>本次收入分成明细</td><td>类型、部门名称、收入分成比例、分成金额</td><td>窄屏允许横向滚动。</td></tr>
+                <tr><td>转出分支详情</td><td>业务类型、核算要素、切分金额、切分比例、备注</td><td>字段只读；切分比例和切分金额均由服务端返回，移动端按统一格式展示，不进行计算或校验。</td></tr>
+                <tr><td>分支机构员工贡献度</td><td>部门名称、姓名、工号、贡献度比例、收入金额</td><td>仅用于当前审批查看。</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-grid" style="margin-top:16px;">
+            <article class="info-card blue"><h3>历史切分详情</h3><p>点击“详情”进入历史切分详情；关闭后返回当前收入切分详情，不跳回待办列表，并保留页面上下文。</p></article>
+            <article class="info-card cyan"><h3>审批记录</h3><p>展示服务端返回的全部记录，不由移动端补齐、过滤或推断缺失节点；仅退回记录显示审批意见。</p></article>
+          </div>
+        </section>
+
+        <section id="approval">
+          <div class="section-heading"><div class="section-no">07</div><h2>审批处理规则</h2></div>
+          <div class="operation-grid">
+            <article class="operation"><span class="op-no">APPROVAL-001</span><h3>操作入口</h3><p>仅待办详情底部展示“退回”和“同意”；在办、办结详情仅展示“关闭”。</p><div class="button-demo"><span>退回</span><span class="primary">同意</span></div></article>
+            <article class="operation"><span class="op-no">APPROVAL-002</span><h3>同意</h3><p>仅进行二次确认，不显示审批意见输入框。提交成功后刷新列表、数量和状态。</p><div class="button-demo"><span>取消</span><span class="primary">同意</span></div></article>
+            <article class="operation"><span class="op-no">APPROVAL-003</span><h3>退回</h3><p>退回意见必填，最多200字；仅输入空格视为未填写。</p><div class="button-demo"><span>取消</span><span class="primary">确认退回</span></div></article>
+          </div>
+
+          <h3 class="subheading">APPROVAL-004 防重复与并发</h3>
+          <div class="rule-stack">
+            <div class="rule-row"><b>按钮防重</b><span>提交后进入加载状态并禁止重复点击，每次请求携带唯一请求标识。</span></div>
+            <div class="rule-row"><b>状态变化</b><span>服务端返回任务状态已变化、任务不可处理或不再属于当前用户时，移动端停止提交并提示刷新。</span></div>
+            <div class="rule-row orange"><b>结果不确定</b><span>网络超时后先查询任务最新状态，不直接重复提交。</span></div>
+          </div>
+
+          <h3 class="subheading">APPROVAL-005 收入切分批量审批</h3>
+          <div class="decision-banner">
+            <strong>显示条件</strong>
+            <p>仅“待办”页签、当前用户为对应部组负责人且存在服务端标识为可批量处理的收入切分任务时展示入口。其他页签、角色、流程和节点均隐藏。</p>
+          </div>
+          <div class="rule-stack" style="margin-top:12px;">
+            <div class="rule-row"><b>可选范围</b><span>仅服务端标识为“可批量处理”的收入切分待办可选；收入确认及其他任务不可选。</span></div>
+            <div class="rule-row"><b>批量同意</b><span>无需填写意见；服务端逐笔校验任务权限、节点和版本。</span></div>
+            <div class="rule-row"><b>批量退回</b><span>退回意见必填，同一意见作用于全部所选任务。</span></div>
+            <div class="rule-row"><b>部分失败</b><span>展示成功/失败数量及原因；失败任务保留并刷新最新状态。</span></div>
+          </div>
+
+          <h3 class="subheading">状态及操作映射</h3>
+          <div class="table-wrap compact-table">
+            <table>
+              <thead><tr><th>服务端任务状态</th><th>移动端状态</th><th>页签</th><th>可审批</th></tr></thead>
+              <tbody>
+                <tr><td>审批中，当前处理人为当前用户</td><td>处理中</td><td>待办</td><td class="status-ok">是</td></tr>
+                <tr><td>审批中，用户已参与但不是当前处理人</td><td>处理中</td><td>在办</td><td class="status-no">否</td></tr>
+                <tr><td>审批完成</td><td>已完成</td><td>办结</td><td class="status-no">否</td></tr>
+                <tr><td>退回</td><td>已退回</td><td>不展示</td><td class="status-no">否</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="interfaces">
+          <div class="section-heading"><div class="section-no">08</div><h2>接口、安全与审计</h2></div>
+          <h3 class="subheading" style="margin-top:0;">接口能力</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>接口/能力</th><th>用途</th><th>关键要求</th></tr></thead>
+              <tbody>
+                <tr><td>统一待办任务数据</td><td>向投行平台提供任务索引</td><td>项目名称、流程类型、发起人、当前节点、到达时间及详情路由参数。</td></tr>
+                <tr><td>流程详情查询</td><td>查询完整只读数据</td><td>返回任务版本、当前状态、当前处理人和可用操作。</td></tr>
+                <tr><td>审批记录查询</td><td>返回服务端定义的记录节点</td><td>节点名称、处理人、时间；退回节点同时返回意见。</td></tr>
+                <tr><td>审批提交</td><td>同意或退回</td><td>同意不传意见；退回意见必填；服务端校验权限、幂等和并发。</td></tr>
+                <tr><td>批量审批提交</td><td>批量同意或批量退回</td><td>按服务端返回的可批量处理标识控制，逐笔返回处理结果。</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 class="subheading">接口返回信息要求</h3>
+          <div class="data-grid">
+            <div class="data-item"><strong>审批任务信息</strong><span>用于关联所属流程并定位当前待处理任务。</span></div>
+            <div class="data-item"><strong>业务申请信息</strong><span>用于查询对应的收入确认或收入切分申请详情。</span></div>
+            <div class="data-item"><strong>状态校验信息</strong><span>用于提交时校验任务是否仍可处理。</span></div>
+            <div class="data-item"><strong>可用操作信息</strong><span>用于控制当前用户是否显示同意、退回等按钮。</span></div>
+            <div class="data-item"><strong>批量处理标识</strong><span>用于判断收入切分任务是否允许批量审批。</span></div>
+            <div class="data-item"><strong>请求唯一标识</strong><span>用于避免连续点击产生重复审批。</span></div>
+            <div class="data-item"><strong>任务到达时间</strong><span>用于列表时间展示、筛选和排序。</span></div>
+          </div>
+          <p style="margin-top:10px;color:#667085;font-size:11px;">以上为移动端所需的信息口径，不约束接口参数命名；具体字段名称、类型和格式以双方确认的接口协议为准。</p>
+
+          <h3 class="subheading">数据一致性</h3>
+          <div class="rule-stack">
+            <div class="rule-row"><b>状态统一</b><span>列表、详情和审批接口使用同一任务状态口径，以服务端最新结果为准。</span></div>
+            <div class="rule-row"><b>任务不可处理</b><span>服务端返回当前任务不可继续处理时，移动端不得提交审批，并按最新查询结果刷新列表和详情。</span></div>
+            <div class="rule-row"><b>最新数据</b><span>业务数据发生变化但任务仍有效时，详情展示接口返回的最新业务数据。</span></div>
+          </div>
+
+          <h3 class="subheading">权限、安全与审计</h3>
+          <details open><summary>SEC-001 权限控制</summary><div class="details-body"><ul><li>列表、详情及审批接口均由服务端执行数据权限校验。</li><li>待办审批必须校验当前用户等于当前处理人。</li><li>前端隐藏按钮不能替代服务端权限控制。</li><li>人员角色或组织关系变化时，以最新任务分配结果为准。</li></ul></div></details>
+          <details><summary>SEC-002 数据安全</summary><div class="details-body"><ul><li>接口使用公司统一安全通道。</li><li>退回意见按内部敏感业务数据管理。</li></ul></div></details>
+          <details><summary>SEC-003 审计留痕</summary><div class="details-body"><ul><li>记录审批操作关联的收入确认或收入切分申请、流程类型和审批节点。</li><li>记录操作人、员工编号、角色、同意/退回及退回意见。</li><li>记录请求时间、处理时间、客户端版本、请求标识及结果。</li><li>服务端记录处理结果、失败原因及审批前后状态。</li></ul></div></details>
+        </section>
+
+        <section id="exceptions">
+          <div class="section-heading"><div class="section-no">09</div><h2>异常处理</h2></div>
+          <div class="risk-list">
+            <div class="risk-item"><b>列表加载失败</b><span>由投行平台保留筛选条件并提供重试入口。</span></div>
+            <div class="risk-item"><b>进入详情失败</b><span>提示加载失败并允许重试，保留来源页签和返回上下文。</span></div>
+            <div class="risk-item"><b>详情加载失败</b><span>展示错误说明和重试，不展示审批按钮。</span></div>
+            <div class="risk-item"><b>关键字段缺失</b><span>必要字段使用“--”占位并记录接口异常；可选字段隐藏。</span></div>
+            <div class="risk-item"><b>任务已被处理</b><span>提示状态变化，刷新并移出待办。</span></div>
+            <div class="risk-item"><b>用户无权限</b><span>提示“无权查看或处理该任务”，返回实际上一级页面。</span></div>
+            <div class="risk-item"><b>提交结果不确定</b><span>网络超时或未收到明确响应时，审批可能已成功；先查询最新任务状态，结果明确前不重复提交。</span></div>
+            <div class="risk-item"><b>服务端明确返回失败</b><span>服务端已确认本次审批未成功；展示返回的可读原因，退回场景保留已填写意见，允许用户处理后重新提交。</span></div>
+            <div class="risk-item"><b>日期范围不合法</b><span>阻止查询并提示开始日期不得晚于结束日期。</span></div>
+            <div class="risk-item"><b>网络断开</b><span>不缓存审批结果离线提交，恢复后由用户重新确认。</span></div>
+          </div>
+        </section>
+
+        <section id="acceptance">
+          <div class="section-heading"><div class="section-no">10</div><h2>验收场景</h2></div>
+          <div class="acceptance-toolbar">
+            <p>共34项，覆盖公共待办接入、业务详情、审批记录、单笔/批量审批、权限和异常状态。</p>
+            <button type="button" id="toggle-acceptance">收起全部</button>
+          </div>
+
+          <details class="acceptance-group" open>
+            <summary>A. 公共待办与导航（AC01—AC08）</summary>
+            <div class="details-body table-wrap">
+              <table><thead><tr><th>编号</th><th>场景</th><th>预期结果</th></tr></thead><tbody>
+                <tr><td>AC01</td><td>进入投行平台待办处理页面</td><td>默认展示待办、全部待办和最新到达优先，数量与列表一致。</td></tr>
+                <tr><td>AC02</td><td>切换待办、在办、办结</td><td>PC已办任务按状态映射：未结束进入在办，已结束进入办结。</td></tr>
+                <tr><td>AC03</td><td>使用主题搜索</td><td>对当前用户有权查看的流程内全部字段要素进行模糊匹配，并展示服务端返回的结果。</td></tr>
+                <tr><td>AC04</td><td>组合使用流程类型、发起人和时间筛选</td><td>按流程类型、实际发起人及任务到达时间返回结果。</td></tr>
+                <tr><td>AC05</td><td>切换两种排序</td><td>最新到达按时间倒序，最久等待按时间正序。</td></tr>
+                <tr><td>AC06</td><td>查看列表卡片</td><td>标题为项目名称，仅展示流程类型、发起人、当前节点和时间。</td></tr>
+                <tr><td>AC07</td><td>查看业务明细</td><td>凭证号、金额、摘要等进入详情后查看。</td></tr>
+                <tr><td>AC08</td><td>从卡片进入详情</td><td>进入正确业务详情，返回时回到原页签。</td></tr>
+              </tbody></table>
+            </div>
+          </details>
+
+          <details class="acceptance-group" open>
+            <summary>B. 业务详情与审批记录（AC09—AC18）</summary>
+            <div class="details-body table-wrap">
+              <table><thead><tr><th>编号</th><th>场景</th><th>预期结果</th></tr></thead><tbody>
+                <tr><td>AC09</td><td>查看股权/债权收入确认详情</td><td>按项目名称、项目编号、项目类型、发行代码顺序展示。</td></tr>
+                <tr><td>AC10</td><td>非股非债或无发行代码</td><td>隐藏发行代码，不保留空行或项目规模分组。</td></tr>
+                <tr><td>AC11</td><td>查看转出分支详情</td><td>只读显示业务类型、核算要素、切分金额、切分比例和备注。</td></tr>
+                <tr><td>AC12</td><td>核对切分金额</td><td>满足（收入金额－预估支出金额）×切分比例。</td></tr>
+                <tr><td>AC13</td><td>首次进入收入切分详情</td><td>历史切分明细默认折叠，其他主要分组默认展开。</td></tr>
+                <tr><td>AC14</td><td>关闭历史切分详情</td><td>返回当前收入切分详情并保留上下文。</td></tr>
+                <tr><td>AC15</td><td>查看审批记录</td><td>按时间倒序展示服务端节点、处理人和时间。</td></tr>
+                <tr><td>AC16</td><td>查看非退回记录</td><td>不展示审批意见区域。</td></tr>
+                <tr><td>AC17</td><td>查看退回记录</td><td>展示服务端返回的退回意见。</td></tr>
+                <tr><td>AC18</td><td>服务端返回定时任务初始记录</td><td>展示节点名称、处理人和时间。</td></tr>
+              </tbody></table>
+            </div>
+          </details>
+
+          <details class="acceptance-group" open>
+            <summary>C. 单笔审批、权限与状态（AC19—AC25）</summary>
+            <div class="details-body table-wrap">
+              <table><thead><tr><th>编号</th><th>场景</th><th>预期结果</th></tr></thead><tbody>
+                <tr><td>AC19</td><td>进入不同状态详情</td><td>仅待办展示退回和同意；在办、办结仅查看。</td></tr>
+                <tr><td>AC20</td><td>点击同意</td><td>仅显示二次确认，不展示意见输入框。</td></tr>
+                <tr><td>AC21</td><td>退回原因为空或空格</td><td>阻止提交并提示填写审批意见。</td></tr>
+                <tr><td>AC22</td><td>连续点击审批按钮</td><td>仅发起一次有效请求。</td></tr>
+                <tr><td>AC23</td><td>任务状态发生变化或不可处理</td><td>停止提交，提示状态变化并刷新为服务端最新状态。</td></tr>
+                <tr><td>AC24</td><td>越权访问或审批</td><td>服务端拒绝，移动端提示无权限。</td></tr>
+                <tr><td>AC25</td><td>查看顶部流程卡片</td><td>发起人为实际提交人；完成状态显示“已完成”。</td></tr>
+              </tbody></table>
+            </div>
+          </details>
+
+          <details class="acceptance-group" open>
+            <summary>D. 批量审批、返回及范围边界（AC26—AC34）</summary>
+            <div class="details-body table-wrap">
+              <table><thead><tr><th>编号</th><th>场景</th><th>预期结果</th></tr></thead><tbody>
+                <tr><td>AC26</td><td>部组负责人存在可批量任务</td><td>待办工具栏展示批量审批入口。</td></tr>
+                <tr><td>AC27</td><td>不满足批量条件或切换页签</td><td>完全隐藏批量审批入口。</td></tr>
+                <tr><td>AC28</td><td>进入批量审批模式</td><td>仅服务端标识为“可批量处理”的收入切分任务可选。</td></tr>
+                <tr><td>AC29</td><td>执行批量同意</td><td>无需填写意见；成功任务移出待办并刷新数量。</td></tr>
+                <tr><td>AC30</td><td>批量退回意见为空</td><td>阻止提交并提示填写批量退回意见。</td></tr>
+                <tr><td>AC31</td><td>批量审批部分失败</td><td>展示成功和失败数量及原因，失败任务保留。</td></tr>
+                <tr><td>AC32</td><td>详情返回或关闭</td><td>回到实际进入详情前的上一级和原页签。</td></tr>
+                <tr><td>AC33</td><td>单笔审批成功</td><td>按服务端结果刷新列表、数量和状态。</td></tr>
+                <tr><td>AC34</td><td>流程进入分支机构审批阶段</td><td>投行CRM移动端不产生分支页面或操作，仅更新在办/办结状态。</td></tr>
+              </tbody></table>
+            </div>
+          </details>
+
+          <h3 class="subheading">移动端联调依赖</h3>
+          <div class="rule-stack">
+            <div class="rule-row"><b>待办路由</b><span>投行平台提供详情路由、单点登录、来源页签和返回参数。</span></div>
+            <div class="rule-row"><b>详情字段</b><span>收入确认返回发行代码；收入切分返回切分比例及独立摘要、项目字段。</span></div>
+            <div class="rule-row"><b>权限信息</b><span>任务返回当前节点、当前角色、可用操作及是否允许批量处理等信息；具体字段名以接口协议为准。</span></div>
+            <div class="rule-row"><b>审批结果</b><span>提交接口返回处理结果、最新任务状态和可读错误；支持查询不确定结果。</span></div>
+            <div class="rule-row orange"><b>服务端职责</b><span>流程触发、节点路由、转办、退回对象、跨系统流转及办结条件均由服务端负责。</span></div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="footer"><strong>文档结论：</strong>投行平台移动端承载统一待办，投行 CRM 移动端承接服务端已分配的业务详情与审批操作；不重复建设PC填报和分支机构审批能力。</footer>
+    </main>
+  </div>
+
+  <script>
+    const navLinks = [...document.querySelectorAll('.sidebar nav a')];
+    const sections = navLinks.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id));
+      });
+    }, { rootMargin: '-20% 0px -68% 0px' });
+    sections.forEach(section => observer.observe(section));
+    if (navLinks[0]) navLinks[0].classList.add('active');
+
+    const toggleButton = document.getElementById('toggle-acceptance');
+    const acceptanceGroups = [...document.querySelectorAll('.acceptance-group')];
+    let acceptanceOpen = true;
+    toggleButton.addEventListener('click', () => {
+      acceptanceOpen = !acceptanceOpen;
+      acceptanceGroups.forEach(group => group.open = acceptanceOpen);
+      toggleButton.textContent = acceptanceOpen ? '收起全部' : '展开全部';
+    });
+  </script>
+</body>
+</html>

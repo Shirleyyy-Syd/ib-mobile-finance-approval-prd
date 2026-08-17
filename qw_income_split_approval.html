@@ -1,0 +1,3252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="收入切分审批">
+<title>投行CRM-收入切分审批</title>
+<style>
+:root {
+  --primary: #1890ff;
+  --primary-dark: #096dd9;
+  --primary-light: #e6f7ff;
+  --success: #52c41a;
+  --warning: #faad14;
+  --danger: #ff4d4f;
+  --info: #1890ff;
+  --bg: #f0f2f5;
+  --card-bg: #ffffff;
+  --text-primary: #262626;
+  --text-secondary: #595959;
+  --text-hint: #8c8c8c;
+  --text-disabled: #bfbfbf;
+  --border: #e8e8e8;
+  --border-light: #f0f0f0;
+  --shadow: 0 2px 8px rgba(0,0,0,0.06);
+  --radius: 8px;
+  --radius-sm: 4px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: #111;
+}
+body { display: grid; place-items: center; }
+#app {
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+@media (min-width: 700px) {
+  #app {
+    width: 390px;
+    height: 844px;
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+  }
+}
+
+/* ===== Screen Transition ===== */
+.screen-enter { animation: slideIn 0.28s ease-out; }
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+/* ===== NavBar ===== */
+.navbar {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 12px;
+  background: var(--card-bg);
+  border-bottom: 0.5px solid var(--border);
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+}
+.navbar-back {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 20px;
+}
+.navbar-title {
+  flex: 1;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 -32px;
+  pointer-events: none;
+}
+.navbar-right {
+  min-width: 32px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* ===== Content Area ===== */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===== Tabs ===== */
+.tabs {
+  display: flex;
+  background: var(--card-bg);
+  border-bottom: 0.5px solid var(--border);
+}
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 15px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+.tab.active { color: var(--primary); font-weight: 600; }
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+.tab-badge {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  padding: 0 5px;
+  margin-left: 4px;
+  font-size: 11px;
+  color: #fff;
+  background: var(--danger);
+  border-radius: 9px;
+  vertical-align: top;
+}
+
+/* ===== Search Bar ===== */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--card-bg);
+  border-bottom: 0.5px solid var(--border-light);
+}
+.search-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 6px 10px;
+  gap: 6px;
+}
+.search-input-wrap input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.search-input-wrap input::placeholder { color: var(--text-hint); }
+.search-icon { color: var(--text-hint); font-size: 14px; flex-shrink: 0; }
+.search-filter-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+}
+.search-filter-btn.active { color: var(--primary); }
+.search-filter-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 7px;
+  height: 7px;
+  background: var(--danger);
+  border: 1px solid #fff;
+  border-radius: 50%;
+}
+
+/* ===== List ===== */
+.list-container { padding: 8px 12px 80px; }
+.list-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.list-card:active { transform: scale(0.98); }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.card-voucher {
+  font-size: 13px;
+  color: var(--text-hint);
+  font-weight: 400;
+}
+.card-project {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 4px 0 8px;
+  line-height: 1.4;
+}
+.card-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 10px;
+}
+.card-info-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+.card-info-label { color: var(--text-hint); }
+.card-info-value { color: var(--text-secondary); font-weight: 500; }
+.card-amount { color: var(--danger); font-weight: 600; font-size: 15px; }
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 0.5px solid var(--border-light);
+}
+.card-handler { font-size: 12px; color: var(--text-hint); }
+.card-actions { display: flex; gap: 8px; }
+
+/* ===== Status Badge ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge-new { background: #fff7e6; color: var(--warning); }
+.badge-progress { background: var(--primary-light); color: var(--primary); }
+.badge-done { background: #f6ffed; color: var(--success); }
+.badge-reject { background: #fff1f0; color: var(--danger); }
+
+/* ===== 统一待办列表 ===== */
+.list-container-v2 { padding: 8px 12px 80px; }
+.list-card-v2 {
+  background: #fff;
+  border-radius: 0;
+  padding: 12px 14px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #f0f0f0;
+  box-shadow: none;
+  cursor: pointer;
+  transition: transform 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.list-card-v2:active { transform: scale(0.99); }
+.list-card-v2.batch-selected {
+  border: 1px solid var(--primary);
+  background: #f5faff;
+}
+.list-card-v2.batch-disabled {
+  opacity: 0.55;
+}
+.batch-check {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid #bfbfbf;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+.batch-check.selected {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+.batch-check.selected::after {
+  content: '';
+  width: 6px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+.batch-check.disabled {
+  background: #f5f5f5;
+  border-color: #d9d9d9;
+}
+.card-v2-body {
+  flex: 1;
+  min-width: 0;
+}
+.card-v2-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 9px;
+}
+.biz-tag {
+  display: inline-block;
+  padding: 1px 4px;
+  background: #e6f4ff;
+  color: var(--primary);
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.card-v2-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.card-v2-meta-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(112px, .82fr);
+  column-gap: 16px;
+  row-gap: 8px;
+  padding-right: 4px;
+  color: #8e8e93;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.card-v2-meta-cell {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-v2-meta-value { color: #73767c; }
+.card-v2-meta-time { white-space: nowrap; }
+.btn-v2-action {
+  padding: 5px 10px;
+  background: #fff;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  align-self: center;
+}
+.btn-v2-action:active { opacity: 0.7; }
+.list-end-tip {
+  text-align: center;
+  padding: 16px 0 8px;
+  font-size: 13px;
+  color: #c7c7cc;
+}
+
+/* ===== Filter Bar ===== */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  border-bottom: 0.5px solid var(--border-light);
+}
+.filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #fff;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  border-radius: 14px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.filter-btn.filter-btn-gray {
+  border-color: #e5e5e5;
+  color: #666;
+}
+.filter-btn.active { background: var(--primary-light); }
+.batch-selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #fff;
+  border-bottom: 0.5px solid var(--border-light);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.batch-entry-btn,
+.batch-text-btn {
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.batch-entry-btn {
+  margin-left: auto;
+  border: 1px solid var(--primary);
+  border-radius: 14px;
+  padding: 4px 12px;
+}
+.batch-entry-btn:focus-visible {
+  outline: 2px solid rgba(22, 119, 255, 0.35);
+  outline-offset: 2px;
+}
+@media (max-width: 380px) {
+  .filter-bar { gap: 6px; }
+  .filter-btn,
+  .batch-entry-btn { padding-left: 8px; padding-right: 8px; }
+}
+.batch-selection-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* ===== Biz Panel ===== */
+.biz-panel-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 20;
+}
+.biz-panel {
+  position: absolute;
+  top: 154px;
+  left: 0;
+  width: 140px;
+  background: #fff;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.12);
+  z-index: 21;
+  overflow: hidden;
+}
+.biz-panel-item {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  border-bottom: 0.5px solid #f5f5f5;
+}
+.biz-panel-item:last-child { border-bottom: none; }
+.biz-panel-item.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+.biz-panel-count { font-size: 12px; color: #8e8e93; margin-left: 2px; }
+
+/* ===== Advanced Filter Sheet ===== */
+.advanced-filter-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.48);
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+}
+.advanced-filter-sheet {
+  width: 100%;
+  max-height: 78%;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  animation: slideUp 0.25s ease-out;
+}
+.advanced-filter-header {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 0.5px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+.advanced-filter-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+.advanced-filter-close {
+  position: absolute;
+  right: 16px;
+  top: 11px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-hint);
+  font-size: 28px;
+  line-height: 28px;
+  font-weight: 300;
+  cursor: pointer;
+}
+.advanced-filter-body { padding: 18px 16px 12px; }
+.advanced-filter-group { margin-bottom: 20px; }
+.advanced-filter-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.advanced-filter-select {
+  width: 100%;
+  height: 46px;
+  padding: 0 38px 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+}
+.advanced-filter-select:focus { border-color: var(--primary); }
+.time-range-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.time-range-btn {
+  height: 40px;
+  border: none;
+  border-radius: 4px;
+  background: #f7f8fa;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.time-range-btn.active {
+  color: var(--primary);
+  background: #eaf3ff;
+  font-weight: 500;
+}
+.custom-date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.custom-date-range input {
+  min-width: 0;
+  flex: 1;
+  height: 40px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+.custom-date-separator { color: var(--text-hint); }
+.advanced-filter-actions {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 0.5px solid var(--border);
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+}
+.advanced-filter-action {
+  flex: 1;
+  height: 46px;
+  border-radius: 5px;
+  font-size: 16px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.advanced-filter-reset {
+  color: var(--primary);
+  background: #fff;
+  border: 1px solid var(--primary);
+}
+.advanced-filter-confirm {
+  color: #fff;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+/* ===== Tab Count ===== */
+.tab-count { font-size: 12px; color: inherit; }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+.btn:active { opacity: 0.7; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-outline { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+.btn-default { background: var(--bg); color: var(--text-secondary); }
+.btn-danger { background: #fff; color: var(--danger); border: 1px solid var(--danger); }
+.btn-ghost { background: #fff; color: var(--text-primary); border: 1px solid var(--border); }
+.btn-block { width: 100%; padding: 12px; font-size: 16px; border-radius: 6px; }
+.btn-sm { padding: 4px 12px; font-size: 12px; }
+
+/* ===== Bottom Bar ===== */
+.bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card-bg);
+  border-top: 0.5px solid var(--border);
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+.bottom-bar .btn { flex: 1; }
+
+/* ===== Detail Sections ===== */
+.detail-section {
+  background: var(--card-bg);
+  margin: 0 12px 8px;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.approval-header {
+  background: var(--card-bg);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 16px;
+}
+.approval-header-info {
+  flex: 1;
+  min-width: 0;
+}
+.approval-header-label {
+  font-size: 12px;
+  color: var(--text-hint);
+  margin-bottom: 2px;
+}
+.approval-header-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-arrow {
+  color: var(--text-hint);
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+.section-arrow.collapsed { transform: rotate(-90deg); }
+.section-body { padding: 0 16px 14px; }
+
+/* ===== Table ===== */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 360px;
+}
+.mini-table th {
+  background: #fafafa;
+  color: var(--text-hint);
+  font-weight: 500;
+  padding: 8px 6px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+.mini-table td {
+  padding: 8px 6px;
+  color: var(--text-secondary);
+  border-bottom: 0.5px solid var(--border-light);
+  white-space: nowrap;
+}
+.mini-table td.amount { color: var(--danger); font-weight: 500; }
+.mini-table tr:last-child td { border-bottom: none; }
+
+/* ===== Timeline ===== */
+.timeline { padding: 4px 0; }
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 16px;
+  position: relative;
+}
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 20px;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+}
+.timeline-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+  z-index: 1;
+}
+.timeline-dot.approved { background: var(--success); }
+.timeline-dot.rejected { background: var(--danger); }
+.timeline-dot.submitted { background: var(--primary); }
+.timeline-dot.pending { background: #d9d9d9; }
+.timeline-content { flex: 1; min-width: 0; overflow: visible; }
+.timeline-header {
+  margin-bottom: 4px;
+}
+.timeline-time {
+  display: block;
+  font-size: 12px;
+  color: var(--text-hint);
+  margin-bottom: 3px;
+}
+.timeline-node-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+.timeline-node-name { font-size: 14px; font-weight: 500; }
+.timeline-approver { font-size: 14px; color: var(--text-secondary); }
+.timeline-opinion {
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg);
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+/* ===== Approval Form ===== */
+.textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  color: var(--text-primary);
+  background: var(--bg);
+  transition: border-color 0.2s;
+}
+.textarea:focus { border-color: var(--primary); background: #fff; }
+.textarea-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.required-mark { color: var(--danger); font-size: 14px; }
+
+/* ===== Transfer Page ===== */
+.member-list { padding: 8px 12px 80px; }
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.1s;
+}
+.member-item:active { transform: scale(0.98); }
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.member-info { flex: 1; }
+.member-name { font-size: 15px; font-weight: 500; color: var(--text-primary); }
+.member-detail { font-size: 12px; color: var(--text-hint); margin-top: 2px; }
+.member-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.member-item.selected .member-check {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+.member-item.selected .member-check::after {
+  content: '';
+  width: 6px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+/* ===== Toast ===== */
+.toast-mask {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toast-box {
+  background: rgba(0,0,0,0.85);
+  border-radius: 12px;
+  padding: 24px 32px;
+  text-align: center;
+  max-width: 260px;
+}
+.toast-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+.toast-text {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ===== Modal ===== */
+.modal-mask {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+}
+.modal-sheet {
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+  width: 100%;
+  padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.modal-content {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.modal-actions {
+  display: flex;
+  gap: 12px;
+}
+.modal-actions .btn { flex: 1; padding: 10px; font-size: 15px; border-radius: 6px; }
+
+/* ===== Empty State ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--text-hint);
+}
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.3;
+}
+.empty-text { font-size: 14px; }
+
+/* ===== Utility ===== */
+.flex-col { display: flex; flex-direction: column; height: 100%; }
+.link-action {
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: none;
+}
+.link-action:active { opacity: 0.6; }
+.table-detail-action {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
+}
+.split-tip-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  background: #fffbe6;
+  border: 0.5px solid #ffe58f;
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.split-tip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--warning);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.branch-cut-info {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: var(--bg);
+  border-radius: 4px;
+}
+.branch-cut-info .amount {
+  color: var(--danger);
+  font-weight: 600;
+}
+.split-tip-bar-blue {
+  background: var(--primary-light);
+  border-color: #91d5ff;
+}
+.split-tip-icon-blue {
+  background: var(--primary);
+}
+.branch-overview-card {
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+/* ===== Flow Header Card（与现有待办详情页统一） ===== */
+.flow-header-card {
+  background: var(--card-bg);
+  margin: 8px 12px;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.flow-header-main {
+  padding-right: 64px;
+  min-height: 46px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+.flow-header-sub {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 0.5px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-hint);
+}
+.flow-stamp {
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px dashed var(--primary);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transform: rotate(-14deg);
+  opacity: 0.7;
+}
+.flow-stamp.done { border-color: var(--success); color: var(--success); }
+.flow-stamp.reject { border-color: var(--danger); color: var(--danger); }
+.flow-stamp.new { border-color: var(--warning); color: var(--warning); }
+.flow-title-tag {
+  display: inline-block;
+  padding: 1px 6px;
+  margin-right: 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  vertical-align: 2px;
+}
+
+/* ===== Detail Tabs ===== */
+.detail-tabs {
+  display: flex;
+  background: var(--card-bg);
+  margin: 0 12px 8px;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.detail-tab {
+  flex: 1;
+  text-align: center;
+  padding: 13px 0 12px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+}
+.detail-tab.active { color: var(--primary); font-weight: 600; }
+.detail-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+/* ===== 单列 label-value（两端对齐） ===== */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 0.5px solid var(--border-light);
+}
+.info-row:last-child { border-bottom: none; }
+.info-row-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.info-row-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  text-align: right;
+  word-break: break-word;
+  line-height: 1.5;
+}
+.info-row-value.link { color: var(--primary); }
+.info-row-value.amount { color: var(--danger); font-weight: 600; }
+
+/* ===== 场景需求说明模式（仅 ?annotate=1 时启用） ===== */
+.review-guide-toggle {
+  position: fixed;
+  right: 18px;
+  bottom: 24px;
+  z-index: 2100;
+  padding: 10px 15px;
+  border: 0;
+  border-radius: 22px;
+  color: #fff;
+  background: #6d28d9;
+  box-shadow: 0 6px 20px rgba(76, 29, 149, 0.35);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.review-guide-panel {
+  position: fixed;
+  top: 50%;
+  left: calc(50% + 18px);
+  z-index: 2090;
+  width: 360px;
+  height: min(844px, calc(100vh - 24px));
+  padding: 18px;
+  overflow-y: auto;
+  color: #334155;
+  background: rgba(255,255,255,0.98);
+  border: 1px solid #dbe3ec;
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(15,23,42,0.18);
+  transform: translateY(-50%);
+}
+body.review-mode-body #app { transform: translateX(-190px); }
+.review-guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.review-guide-head h2 { margin: 0; color: #1e1b4b; font-size: 18px; }
+.review-guide-close { border: 0; color: #64748b; background: transparent; font-size: 24px; cursor: pointer; }
+.review-current-scene {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #1f2937;
+  background: #fff;
+}
+.review-current-scene span {
+  display: block;
+  margin-bottom: 3px;
+  color: #64748b;
+  font-size: 11px;
+}
+.review-current-scene strong { color: #1e3a8a; font-size: 14px; }
+.review-guide-section {
+  margin-bottom: 12px;
+  padding: 11px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.review-guide-section strong { display: block; margin-bottom: 4px; color: #1e3a8a; }
+.review-guide-section.logic { border: 1px solid #bfdbfe; background: #eff6ff; }
+.review-guide-section.boundary { border-left: 4px solid #f59e0b; background: #fff7ed; }
+.review-guide-section.note { border-left: 4px solid #8b5cf6; background: #faf5ff; }
+.review-guide-points { margin: 0; padding-left: 20px; }
+.review-guide-points li { margin-bottom: 5px; }
+.review-guide-tip { color: #64748b; font-size: 12px; line-height: 1.6; }
+@media (max-width: 820px) {
+  body.review-mode-body #app { transform: none; }
+  .review-guide-panel {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 46vh;
+    border-radius: 14px 14px 0 0;
+    border-top: 1px solid #dbe3ec;
+    border-left: 0;
+    box-shadow: 0 -8px 28px rgba(15,23,42,0.18);
+    transform: none;
+  }
+  .review-guide-toggle { right: 12px; bottom: 12px; }
+}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+/* ========== Mock Data ==========
+   【演示账号说明】当前登录用户设定为"张明"，为覆盖收入切分的全部审批节点，
+   演示数据假定该账号同时具备项目负责人、部组负责人、分支机构承揽人的处理权限。
+   真实环境中这三个角色分属不同人员（分支机构承揽人由分公司人员担任），
+   此处仅为在单一账号下演示完整审批链路，不代表权限模型。
+   注：handler 仅用于组织演示数据；node 用于公共待办列表展示当前节点。 */
+const mockTodoList = [
+  {
+    id: 1,
+    flowType: "incomeSplit",
+    voucherNo: "FIN20260715001",
+    projectName: "XX科技科创板IPO项目",
+    projectManager: "张明",
+    amount: 5000000,
+    incomeDate: "2026-07-15",
+    summary: "XX科技科创板IPO项目承销收入切分",
+    auxAccounting: "IB2026-001",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批中",
+    statusType: "progress",
+    handler: "张明（您）",
+    node: "项目负责人",
+    flowNo: "投行一部收入切分2026001"
+  },
+  {
+    id: 2,
+    flowType: "incomeSplit",
+    voucherNo: "FIN20260710002",
+    projectName: "YY集团债券发行项目",
+    projectManager: "李华",
+    amount: 2800000,
+    incomeDate: "2026-07-10",
+    summary: "YY集团债券发行承销收入切分",
+    auxAccounting: "IB2026-002",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批中",
+    statusType: "progress",
+    handler: "张明（您）",
+    node: "部组负责人",
+    flowNo: "投行二部收入切分2026002"
+  },
+  {
+    id: 3,
+    flowType: "incomeSplit",
+    voucherNo: "FIN20260705003",
+    projectName: "ZZ能源非公开发行项目",
+    projectManager: "王强",
+    amount: 3500000,
+    incomeDate: "2026-07-05",
+    summary: "ZZ能源非公开发行承销收入切分",
+    auxAccounting: "IB2026-003",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批中",
+    statusType: "progress",
+    handler: "张明（您）",
+    node: "分支机构承揽人",
+    flowNo: "投行一部收入切分2026003"
+  },
+  {
+    id: 4,
+    flowType: "incomeSplit",
+    voucherNo: "FIN20260703004",
+    projectName: "HH智能装备北交所上市项目",
+    projectManager: "赵敏",
+    amount: 4200000,
+    incomeDate: "2026-07-03",
+    summary: "HH智能装备北交所上市承销收入切分",
+    auxAccounting: "PRO2026-004",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批中",
+    statusType: "progress",
+    handler: "张明（您）",
+    node: "部组负责人",
+    flowNo: "投行三部收入切分2026004"
+  }
+];
+
+const mockDoneList = [
+  {
+    id: 5,
+    flowType: "incomeSplit",
+    voucherNo: "FIN20260628005",
+    projectName: "BB材料科创板IPO项目",
+    projectManager: "陈刚",
+    amount: 8000000,
+    incomeDate: "2026-06-28",
+    summary: "BB材料科创板IPO承销收入切分",
+    auxAccounting: "IB2026-005",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批完成",
+    statusType: "done",
+    handler: "李四",
+    node: "已完成",
+    flowNo: "投行三部收入切分2026005"
+  },
+  {
+    id: 6,
+    flowType: "incomeSplit",
+    voucherNo: "FIN20260620006",
+    projectName: "CC地产并购重组项目",
+    projectManager: "赵敏",
+    amount: 6200000,
+    incomeDate: "2026-06-20",
+    summary: "CC地产并购重组财务顾问收入切分",
+    auxAccounting: "IB2026-006",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批完成",
+    statusType: "done",
+    handler: "钱九",
+    node: "已完成",
+    flowNo: "投行一部收入切分2026006"
+  }
+];
+
+/* ===== 收入确认 Mock 数据 ===== */
+const mockIncomeConfirmTodoList = [
+  {
+    id: 101,
+    flowType: "incomeConfirm",
+    voucherNo: "FIN20260720001",
+    projectName: "XX科技科创板IPO项目",
+    projectManager: "张明",
+    amount: 5000000,
+    incomeDate: "2026-07-20",
+    incomeDept: "投行一部",
+    summary: "XX科技科创板IPO项目经纪业务收入确认",
+    auxAccounting: "IB2026-001",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批中",
+    statusType: "progress",
+    handler: "张明（您）",
+    node: "项目负责人",
+    flowNo: "收入确认2026001"
+  },
+  {
+    id: 102,
+    flowType: "incomeConfirm",
+    voucherNo: "FIN20260718002",
+    projectName: "FF生物医药可转债项目",
+    projectManager: "张明",
+    amount: 2800000,
+    incomeDate: "2026-07-18",
+    incomeDept: "投行一部",
+    summary: "FF生物医药可转债承销收入确认",
+    auxAccounting: "IB2026-009",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批中",
+    statusType: "progress",
+    handler: "张明（您）",
+    node: "项目负责人",
+    flowNo: "收入确认2026002"
+  },
+  {
+    id: 104,
+    flowType: "incomeConfirm",
+    voucherNo: "FIN20260716004",
+    projectName: "华东产业并购财务顾问项目",
+    projectManager: "张明",
+    amount: -128000,
+    incomeDate: "2026-07-16",
+    incomeDept: "投行一部",
+    summary: "华东产业并购项目尽调差旅费",
+    auxAccounting: "PRO6421-001",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批中",
+    statusType: "progress",
+    handler: "张明（您）",
+    node: "项目负责人",
+    flowNo: "收入确认2026004"
+  }
+];
+
+const mockIncomeConfirmDoneList = [
+  {
+    id: 103,
+    flowType: "incomeConfirm",
+    voucherNo: "FIN20260628003",
+    projectName: "GG并购重组财务顾问项目",
+    projectManager: "陈刚",
+    amount: 8000000,
+    incomeDate: "2026-06-28",
+    incomeDept: "投行三部",
+    summary: "GG并购重组财务顾问收入确认",
+    auxAccounting: "IB2026-005",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批完成",
+    statusType: "done",
+    handler: "陈刚",
+    node: "已完成",
+    flowNo: "收入确认2026003"
+  }
+];
+
+/* ===== 在办列表 Mock 数据 ===== */
+const mockDoingList = [
+  {
+    id: 201,
+    flowType: "incomeSplit",
+    voucherNo: "FIN20260712007",
+    projectName: "DD新能源科创板IPO项目",
+    projectManager: "周杰",
+    amount: 12000000,
+    incomeDate: "2026-07-12",
+    summary: "DD新能源科创板IPO承销收入切分",
+    auxAccounting: "IB2026-007",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批中",
+    statusType: "progress",
+    handler: "李华",
+    node: "部组负责人",
+    flowNo: "投行一部收入切分2026007"
+  },
+  {
+    id: 202,
+    flowType: "incomeConfirm",
+    voucherNo: "FIN20260710008",
+    projectName: "EE半导体定增项目",
+    projectManager: "吴磊",
+    amount: 4500000,
+    incomeDate: "2026-07-10",
+    incomeDept: "投行一部",
+    summary: "EE半导体定增项目承销收入确认",
+    auxAccounting: "IB2026-008",
+    bizType: "finance",
+    bizTypeLabel: "财务",
+    status: "审批中",
+    statusType: "progress",
+    handler: "吴磊",
+    node: "项目负责人",
+    flowNo: "收入确认2026008"
+  }
+];
+
+/* ===== 收入确认详情 Mock =====
+   流程已变更（2026-07 与 PC 端确认）：
+   · 收入对应项目号【存在】时不再发起收入确认流程，因此收到流程的首节点处理人一律是公文员
+   · 公文员【不转办】→ 查询发行代码并完成项目关联后提交，转项目负责人审批
+   · 公文员【转办】  → 转给项目成员，由该成员完成项目关联并提交，再转项目负责人审批
+   · 项目规模新增及维护跳转项目管理平台完成，收入确认审批详情不展示项目规模
+   移动端只做审批环节（补充信息、提交、转办均在 PC 端完成），
+   因此审批人在移动端看到的发起人有两种：公文员（未转办）或项目成员（已转办） */
+function makeConfirmDetail(cfg) {
+  return {
+    submitter: cfg.submitter,
+    basicInfo: {
+      voucherNo: cfg.voucherNo,
+      subject: cfg.subject || "经纪业务收入",
+      amount: cfg.amount,
+      incomeDept: cfg.incomeDept,
+      incomeDate: cfg.incomeDate,
+      summary: cfg.summary || cfg.remark,
+      auxAccounting: cfg.auxAccounting || cfg.projectNo,
+      projectNo: cfg.projectNo,
+      projectName: cfg.projectName,
+      remark: cfg.remark
+    },
+    projectType: cfg.projectType,
+    issueCode: cfg.issueCode,
+    approvalRecords: cfg.approvalRecords
+  };
+}
+
+const confirmDetailMap = {
+  /* 待办 id=101：未转办。公文员王芳补充信息提交 → 项目负责人张明审批（当前） */
+  101: makeConfirmDetail({
+    submitter: { name: "王芳", time: "2026-07-20 09:15" },
+    voucherNo: "FIN20260720001", amount: 5000000, incomeDept: "投行一部", incomeDate: "2026-07-20",
+    projectNo: "IB2026-001", projectName: "XX科技科创板IPO项目",
+    remark: "XX科技科创板IPO项目主承销佣金收入",
+    projectType: "股权", issueCode: "6**001.SH",
+    approvalRecords: [
+      { name: "王芳", time: "2026-07-20 09:05", action: "start", nodeName: "定时任务开启流程" },
+      { name: "王芳", time: "2026-07-20 09:15", action: "submit", nodeName: "补充收入确认信息" }
+    ]
+  }),
+  /* 待办 id=102：转办。公文员刘敏转办给项目成员周八，周八补充信息后提交 → 项目负责人张明审批（当前）
+     此时审批人看到的发起人是【项目成员】，与 id=101 的【公文员】形成对照 */
+  102: makeConfirmDetail({
+    submitter: { name: "周八", time: "2026-07-18 15:20" },
+    voucherNo: "FIN20260718002", amount: 2800000, incomeDept: "投行一部", incomeDate: "2026-07-18",
+    projectNo: "IB2026-009", projectName: "FF生物医药可转债项目",
+    remark: "FF生物医药可转债承销佣金收入",
+    projectType: "债权", issueCode: "1**88.IB",
+    approvalRecords: [
+      { name: "刘敏", time: "2026-07-18 10:30", action: "start", nodeName: "定时任务开启流程" },
+      { name: "周八", time: "2026-07-18 15:20", action: "submit", nodeName: "补充收入确认信息" }
+    ]
+  }),
+  /* 待办 id=104：科目6421支出项，由服务端生成收入确认任务；移动端仅审批并展示摘要 */
+  104: makeConfirmDetail({
+    submitter: { name: "王芳", time: "2026-07-16 11:10" },
+    voucherNo: "FIN20260716004", subject: "6421 业务支出", amount: -128000,
+    incomeDept: "投行一部", incomeDate: "2026-07-16",
+    summary: "华东产业并购项目尽调差旅费", auxAccounting: "PRO6421-001",
+    projectNo: "IB2026-011", projectName: "华东产业并购财务顾问项目",
+    remark: "科目6421支出项，已关联投行项目。",
+    projectType: "非股非债",
+    approvalRecords: [
+      { name: "王芳", time: "2026-07-16 11:00", action: "start", nodeName: "定时任务开启流程" },
+      { name: "王芳", time: "2026-07-16 11:10", action: "submit", nodeName: "补充收入确认信息" }
+    ]
+  }),
+  /* 办结 id=103：未转办。公文员刘芳提交 → 项目负责人陈刚同意，流程结束 */
+  103: makeConfirmDetail({
+    submitter: { name: "刘芳", time: "2026-06-28 10:00" },
+    voucherNo: "FIN20260628003", amount: 8000000, incomeDept: "投行三部", incomeDate: "2026-06-28",
+    projectNo: "IB2026-005", projectName: "GG并购重组财务顾问项目",
+    remark: "GG并购重组项目财务顾问收入",
+    projectType: "非股非债",
+    approvalRecords: [
+      { name: "刘芳", time: "2026-06-28 09:50", action: "start", nodeName: "定时任务开启流程" },
+      { name: "刘芳", time: "2026-06-28 10:00", action: "submit", nodeName: "补充收入确认信息" },
+      { name: "陈刚", time: "2026-06-28 15:20", action: "approve", nodeName: "项目负责人审批" }
+    ]
+  }),
+  /* 在办 id=202：转办。公文员赵倩转办给项目成员张明，张明提交后当前由项目负责人吴磊审批
+     张明在流程参与人中但不是当前审批人，故落在「在办」页签，只能查看 */
+  202: makeConfirmDetail({
+    submitter: { name: "张明", time: "2026-07-10 14:05" },
+    voucherNo: "FIN20260710008", amount: 4500000, incomeDept: "投行一部", incomeDate: "2026-07-10",
+    projectNo: "IB2026-008", projectName: "EE半导体定增项目",
+    remark: "EE半导体定增项目承销佣金收入",
+    projectType: "股权", issueCode: "6**008.SH",
+    approvalRecords: [
+      { name: "赵倩", time: "2026-07-10 08:25", action: "start", nodeName: "定时任务开启流程" },
+      { name: "张明", time: "2026-07-10 14:05", action: "submit", nodeName: "补充收入确认信息" }
+    ]
+  })
+};
+
+function getConfirmDetail(item) {
+  return confirmDetailMap[item && item.id] || confirmDetailMap[101];
+}
+
+/* ===== 收入切分详情 Mock（按需求 3.1.4 审批规则 ii 覆盖三条路径） =====
+   路径A 转办  ：项目负责人转办给项目成员 → 成员提交 → 回项目负责人审批 → 部组负责人
+   路径B 未转办：项目负责人自己提交 → 直接转部组负责人审批
+   路径C        ：部组负责人通过后 → 分支机构承揽人、分支机构负责人二级审批 */
+function makeSplitDetail(cfg) {
+  const netAmount = cfg.amount - cfg.estimatedCost;
+  const branchTotal = Math.round(netAmount * 0.2);
+  const bj = Math.round(branchTotal * 0.75);
+  const sh = branchTotal - bj;
+  const bjWang = Math.round(bj * 0.6);
+  const history1Amount = Math.round(cfg.amount * 0.9);
+  const history1EstimatedCost = Math.round(cfg.estimatedCost * 0.6);
+  const history1NetAmount = history1Amount - history1EstimatedCost;
+  const history1MainAmount = Math.round(history1NetAmount * 0.6);
+  const history1CoAmount = Math.round(history1NetAmount * 0.2);
+  const history1BranchAmount = history1NetAmount - history1MainAmount - history1CoAmount;
+  const history2Amount = Math.round(cfg.amount * 0.76);
+  const history2EstimatedCost = Math.round(cfg.estimatedCost * 0.5);
+  const history2NetAmount = history2Amount - history2EstimatedCost;
+  const history2MainAmount = Math.round(history2NetAmount * 0.7);
+  const history2CoAmount = Math.round(history2NetAmount * 0.15);
+  const history2BranchAmount = history2NetAmount - history2MainAmount - history2CoAmount;
+  return {
+    submitter: cfg.submitter,
+    basicInfo: {
+      flowNo: cfg.flowNo,
+      confirmer: cfg.confirmer,
+      applyDept: cfg.applyDept,
+      applyDate: cfg.applyDate,
+      voucherNo: cfg.voucherNo,
+      projectName: cfg.projectName,
+      projectNo: cfg.projectNo,
+      amount: cfg.amount,
+      estimatedCost: cfg.estimatedCost,
+      summary: cfg.summary || (cfg.projectName + "收入切分"),
+      auxAccounting: cfg.auxAccounting || cfg.projectNo,
+      projectType: cfg.projectType
+    },
+    historySplits: [
+      { voucherNo: "FIN20260301001", mainDept: cfg.applyDept, mainRatio: "60%", coDept: "投行二部", coRatio: "20%", branch: "北京分公司", branchRatio: "20%" },
+      { voucherNo: "FIN20260115002", mainDept: cfg.applyDept, mainRatio: "70%", coDept: "投行三部", coRatio: "15%", branch: "上海分公司", branchRatio: "15%" }
+    ],
+    historyDetailData: [
+      {
+        flowNo: "FIN20260301001", confirmer: cfg.confirmer, applyDept: cfg.applyDept, applyDate: "2026-03-01",
+        voucherNo: "FIN20260301001", projectName: cfg.projectName, projectNo: cfg.projectNo,
+        amount: history1Amount, estimatedCost: history1EstimatedCost,
+        splits: [
+          { type: "主办部门", deptName: cfg.applyDept, ratio: "60%", amount: history1MainAmount },
+          { type: "协办部门", deptName: "投行二部", ratio: "20%", amount: history1CoAmount },
+          { type: "分支机构", deptName: "北京分公司", ratio: "20%", amount: history1BranchAmount }
+        ]
+      },
+      {
+        flowNo: "FIN20260115002", confirmer: cfg.confirmer, applyDept: cfg.applyDept, applyDate: "2026-01-15",
+        voucherNo: "FIN20260115002", projectName: cfg.projectName, projectNo: cfg.projectNo,
+        amount: history2Amount, estimatedCost: history2EstimatedCost,
+        splits: [
+          { type: "主办部门", deptName: cfg.applyDept, ratio: "70%", amount: history2MainAmount },
+          { type: "协办部门", deptName: "投行三部", ratio: "15%", amount: history2CoAmount },
+          { type: "分支机构", deptName: "上海分公司", ratio: "15%", amount: history2BranchAmount }
+        ]
+      }
+    ],
+    currentSplits: [
+      { type: "分支", deptName: "北京分公司", ratio: "75%", amount: bj },
+      { type: "分支", deptName: "上海分公司", ratio: "25%", amount: sh }
+    ],
+    branchOverview: {
+      bizType: cfg.bizType,
+      accountElement: "经纪业务收入",
+      totalAmount: branchTotal,
+      splitRatio: "20%",
+      remark: "本次收入切分所有分支机构总概况"
+    },
+    branchContributions: [
+      {
+        branchName: "北京分公司",
+        cutAmount: bj,
+        members: [
+          { name: "王五", empNo: "EMP001", ratio: "60%", amount: bjWang },
+          { name: "赵六", empNo: "EMP002", ratio: "40%", amount: bj - bjWang }
+        ]
+      },
+      {
+        branchName: "上海分公司",
+        cutAmount: sh,
+        members: [{ name: "孙七", empNo: "EMP003", ratio: "100%", amount: sh }]
+      }
+    ],
+    approvalRecords: cfg.approvalRecords
+  };
+}
+
+const splitDetailMap = {
+  /* 待办 id=1：路径A 转办。项目负责人张明转办给项目成员李四，李四提交后转回张明审批 */
+  1: makeSplitDetail({
+    submitter: { name: "李四", time: "2026-07-15 10:30" },
+    flowNo: "投行一部收入切分2026001", confirmer: "张明", applyDept: "投行一部", applyDate: "2026-07-15",
+    voucherNo: "FIN20260715001", projectName: "XX科技科创板IPO项目", projectNo: "IB2026-001",
+    amount: 5000000, estimatedCost: 800000, projectType: "股权类-IPO",
+    bizType: "投行股权业务",
+    approvalRecords: [
+      { name: "张明", time: "2026-07-15 09:50", action: "start", nodeName: "定时任务开启流程" },
+      { name: "李四", time: "2026-07-15 10:30", action: "submit", nodeName: "补充收入切分信息" }
+    ]
+  }),
+  /* 待办 id=2：路径B 未转办。项目负责人李华自己提交，直接转部组负责人审批 */
+  2: makeSplitDetail({
+    submitter: { name: "李华", time: "2026-07-10 09:20" },
+    flowNo: "投行二部收入切分2026002", confirmer: "李华", applyDept: "投行二部", applyDate: "2026-07-10",
+    voucherNo: "FIN20260710002", projectName: "YY集团债券发行项目", projectNo: "IB2026-002",
+    amount: 2800000, estimatedCost: 350000, projectType: "债权类-公司债",
+    bizType: "投行债权业务",
+    approvalRecords: [
+      { name: "李华", time: "2026-07-10 09:10", action: "start", nodeName: "定时任务开启流程" },
+      { name: "李华", time: "2026-07-10 09:20", action: "submit", nodeName: "补充收入切分信息" }
+    ]
+  }),
+  /* 待办 id=4：部组负责人节点，用于演示多选批量审批 */
+  4: makeSplitDetail({
+    submitter: { name: "赵敏", time: "2026-07-03 10:15" },
+    flowNo: "投行三部收入切分2026004", confirmer: "赵敏", applyDept: "投行三部", applyDate: "2026-07-03",
+    voucherNo: "FIN20260703004", projectName: "HH智能装备北交所上市项目", projectNo: "IB2026-004",
+    summary: "HH智能装备北交所上市承销收入切分", auxAccounting: "PRO2026-004",
+    amount: 4200000, estimatedCost: 510000, projectType: "股权类-北交所",
+    bizType: "投行股权业务",
+    approvalRecords: [
+      { name: "赵敏", time: "2026-07-03 10:05", action: "start", nodeName: "定时任务开启流程" },
+      { name: "赵敏", time: "2026-07-03 10:15", action: "submit", nodeName: "补充收入切分信息" }
+    ]
+  }),
+  /* 待办 id=3：路径C。未转办提交后部组负责人已通过，当前在分支机构承揽人节点 */
+  3: makeSplitDetail({
+    submitter: { name: "王强", time: "2026-07-05 11:05" },
+    flowNo: "投行一部收入切分2026003", confirmer: "王强", applyDept: "投行一部", applyDate: "2026-07-05",
+    voucherNo: "FIN20260705003", projectName: "ZZ能源非公开发行项目", projectNo: "IB2026-003",
+    amount: 3500000, estimatedCost: 420000, projectType: "股权类-非公开发行",
+    bizType: "投行股权业务",
+    approvalRecords: [
+      { name: "王强", time: "2026-07-05 10:55", action: "start", nodeName: "定时任务开启流程" },
+      { name: "王强", time: "2026-07-05 11:05", action: "submit", nodeName: "补充收入切分信息" },
+      { name: "孙涛", time: "2026-07-05 15:40", action: "approve", nodeName: "部组负责人审批" }
+    ]
+  }),
+  /* 办结 id=5：路径B 走完全流程 */
+  5: makeSplitDetail({
+    submitter: { name: "陈刚", time: "2026-06-28 10:00" },
+    flowNo: "投行三部收入切分2026005", confirmer: "陈刚", applyDept: "投行三部", applyDate: "2026-06-28",
+    voucherNo: "FIN20260628005", projectName: "BB材料科创板IPO项目", projectNo: "IB2026-005",
+    amount: 8000000, estimatedCost: 950000, projectType: "股权类-IPO",
+    bizType: "投行股权业务",
+    approvalRecords: [
+      { name: "陈刚", time: "2026-06-28 09:50", action: "start", nodeName: "定时任务开启流程" },
+      { name: "陈刚", time: "2026-06-28 10:00", action: "submit", nodeName: "补充收入切分信息" },
+      { name: "李四", time: "2026-06-28 14:10", action: "approve", nodeName: "部组负责人审批" },
+      { name: "王五", time: "2026-06-28 15:20", action: "approve", nodeName: "承揽人会签" },
+      { name: "赵敏", time: "2026-06-28 16:30", action: "approve", nodeName: "机构负责人会签" }
+    ]
+  }),
+  /* 办结 id=6：路径A 走完全流程（含转办后回项目负责人审批） */
+  6: makeSplitDetail({
+    submitter: { name: "周八", time: "2026-06-20 09:30" },
+    flowNo: "投行一部收入切分2026006", confirmer: "赵敏", applyDept: "投行一部", applyDate: "2026-06-20",
+    voucherNo: "FIN20260620006", projectName: "CC地产并购重组项目", projectNo: "IB2026-006",
+    amount: 6200000, estimatedCost: 700000, projectType: "并购重组",
+    bizType: "投行财务顾问业务",
+    approvalRecords: [
+      { name: "赵敏", time: "2026-06-20 09:20", action: "start", nodeName: "定时任务开启流程" },
+      { name: "周八", time: "2026-06-20 09:30", action: "submit", nodeName: "补充收入切分信息" },
+      { name: "赵敏", time: "2026-06-20 11:00", action: "approve", nodeName: "项目负责人审批" },
+      { name: "孙涛", time: "2026-06-20 14:20", action: "approve", nodeName: "部组负责人审批" },
+      { name: "王五", time: "2026-06-20 15:45", action: "approve", nodeName: "承揽人会签" },
+      { name: "钱九", time: "2026-06-20 17:10", action: "approve", nodeName: "机构负责人会签" }
+    ]
+  }),
+  /* 在办 id=201：路径B，当前停在部组负责人李华处 */
+  201: makeSplitDetail({
+    submitter: { name: "周杰", time: "2026-07-12 08:50" },
+    flowNo: "投行一部收入切分2026007", confirmer: "周杰", applyDept: "投行一部", applyDate: "2026-07-12",
+    voucherNo: "FIN20260712007", projectName: "DD新能源科创板IPO项目", projectNo: "IB2026-007",
+    amount: 12000000, estimatedCost: 1400000, projectType: "股权类-IPO",
+    bizType: "投行股权业务",
+    approvalRecords: [
+      { name: "周杰", time: "2026-07-12 08:40", action: "start", nodeName: "定时任务开启流程" },
+      { name: "周杰", time: "2026-07-12 08:50", action: "submit", nodeName: "补充收入切分信息" }
+    ]
+  })
+};
+
+function getSplitDetail(item) {
+  return splitDetailMap[item && item.id] || splitDetailMap[1];
+}
+
+function getItemSubmitterName(item) {
+  // 公共待办及审批详情统一使用“发起人”，数据取实际提交进入审批环节的人员。
+  const detail = item && item.flowType === "incomeConfirm"
+    ? getConfirmDetail(item)
+    : getSplitDetail(item);
+  return detail && detail.submitter ? detail.submitter.name : "";
+}
+
+function getItemSubmitTime(item) {
+  const detail = item && item.flowType === "incomeConfirm"
+    ? getConfirmDetail(item)
+    : getSplitDetail(item);
+  return detail && detail.submitter ? detail.submitter.time : "";
+}
+
+const mockHistoryDetail = {
+  flowNo: "FIN20260301001",
+  confirmer: "张三",
+  applyDept: "投行一部",
+  applyDate: "2026-03-01",
+  voucherNo: "FIN20260301001",
+  projectName: "XX科技科创板IPO项目",
+  projectNo: "IB2026-001",
+  amount: 4500000,
+  estimatedCost: 500000,
+  splits: [
+    { type: "主办部门", deptName: "投行一部", ratio: "60%", amount: 2400000 },
+    { type: "协办部门", deptName: "投行二部", ratio: "20%", amount: 800000 },
+    { type: "分支机构", deptName: "北京分公司", ratio: "20%", amount: 800000 }
+  ]
+};
+
+const mockMembers = [
+  { id: 1, name: "王五", position: "项目经理", org: "总部投行部", dept: "投行一部" },
+  { id: 2, name: "赵六", position: "高级经理", org: "总部投行部", dept: "投行一部" },
+  { id: 3, name: "孙七", position: "业务经理", org: "总部投行部", dept: "投行二部" },
+  { id: 4, name: "周八", position: "客户经理", org: "北京分公司", dept: "北京分公司业务部" }
+];
+
+/* ========== Helpers ========== */
+function formatCurrency(num) {
+  if (!num && num !== 0) return "-";
+  return num.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function getInitials(name) {
+  return name ? name.slice(-2) : "?";
+}
+
+/* ========== Components ========== */
+function NavBar({ title, onBack, rightContent }) {
+  return (
+    <div className="navbar">
+      <div className="navbar-back" onClick={onBack}>
+        <svg width="12" height="20" viewBox="0 0 12 20" fill="none">
+          <path d="M10 2L2 10L10 18" stroke="#262626" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+      <div className="navbar-title">{title}</div>
+      <div className="navbar-right">{rightContent}</div>
+    </div>
+  );
+}
+
+function Badge({ type, text }) {
+  const cls = type === "new" ? "badge-new" : type === "progress" ? "badge-progress" : type === "done" ? "badge-done" : type === "reject" ? "badge-reject" : "badge-progress";
+  return <span className={"badge " + cls}>{text}</span>;
+}
+
+function getReviewSceneForListItem(item) {
+  if (item.flowType === "incomeConfirm") {
+    if (item.id === 101) return "confirm-101";
+    if (item.id === 102) return "confirm-102";
+    const detail = getConfirmDetail(item);
+    return detail.projectType === "非股非债" ? "confirm-103-project" : "confirm-102-project";
+  }
+  if (item.id === 1) return "split-1";
+  if (item.id === 2 || item.id === 4) return "split-2";
+  if (item.id === 3) return "split-3";
+  return "split-5-history";
+}
+
+function ListCard({ item, onClick, onAction, actionLabel, batchMode, batchEligible, selected, onSelect, reviewScene }) {
+  const flowName = item.flowType === "incomeConfirm" ? "收入确认申请流程" : "收入切分申请流程";
+  const submitterName = getItemSubmitterName(item);
+  const submitTime = getItemSubmitTime(item);
+  const handleCardClick = () => {
+    if (batchMode) {
+      if (batchEligible) onSelect(item);
+      return;
+    }
+    onClick();
+  };
+  return (
+    <div
+      className={"list-card-v2" + (selected ? " batch-selected" : "") + (batchMode && !batchEligible ? " batch-disabled" : "")}
+      data-review-scene={batchMode ? "list-batch" : reviewScene}
+      onClick={handleCardClick}
+    >
+      {batchMode && (
+        <span className={"batch-check" + (selected ? " selected" : "") + (!batchEligible ? " disabled" : "")} />
+      )}
+      <div className="card-v2-body">
+        <div className="card-v2-top">
+          <span className="biz-tag">投行</span>
+          <span className="card-v2-title">{item.projectName}</span>
+        </div>
+        <div className="card-v2-meta-grid">
+          <div className="card-v2-meta-cell card-v2-meta-value">{flowName}</div>
+          <div className="card-v2-meta-cell card-v2-meta-value">{submitterName}</div>
+          <div className="card-v2-meta-cell card-v2-meta-value">{item.node}</div>
+          <div className="card-v2-meta-cell card-v2-meta-time">{submitTime.replace(/-/g, "/")}</div>
+        </div>
+      </div>
+      {!batchMode && (
+        <button className="btn-v2-action" onClick={(e) => { e.stopPropagation(); onAction(item); }}>
+          {actionLabel || "去处理"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ListPage({ onApprove, onViewDetail, onTransfer, onApproveIncomeConfirm, onViewIncomeConfirmDetail, initialTab = "todo", onTabChange, initialBatchMode = false, initialSelectedBatchIds = [] }) {
+  const [tab, setTab] = useState(initialTab);
+  const [searchText, setSearchText] = useState("");
+  const [bizFilter, setBizFilter] = useState("all");
+  const [showBizPanel, setShowBizPanel] = useState(false);
+  const emptyAdvancedFilter = {
+    flowType: "all",
+    submitter: "all",
+    timeRange: "all",
+    customStart: "",
+    customEnd: ""
+  };
+  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
+  const [advancedFilter, setAdvancedFilter] = useState(emptyAdvancedFilter);
+  const [draftAdvancedFilter, setDraftAdvancedFilter] = useState(emptyAdvancedFilter);
+  const [batchMode, setBatchMode] = useState(initialBatchMode);
+  const [selectedBatchIds, setSelectedBatchIds] = useState(initialSelectedBatchIds);
+  const [processedBatchIds, setProcessedBatchIds] = useState([]);
+  const [batchSheet, setBatchSheet] = useState(null);
+  const [batchToast, setBatchToast] = useState(null);
+
+  const bizTypes = [
+    { key: "all", label: "全部待办" },
+    { key: "finance", label: "财务待办" },
+    { key: "ib", label: "投行待办" },
+    { key: "self", label: "自律待办" },
+    { key: "draft", label: "底稿待办" },
+    { key: "supervise", label: "后督待办" }
+  ];
+
+  const allTodoList = [...mockTodoList, ...mockIncomeConfirmTodoList]
+    .filter(item => !processedBatchIds.includes(item.id));
+  const allDoneList = [...mockDoneList, ...mockIncomeConfirmDoneList];
+  const allDoingList = mockDoingList;
+  const allItems = [...allTodoList, ...allDoneList, ...allDoingList];
+  const submitters = [...new Set(allItems.map(getItemSubmitterName).filter(Boolean))];
+  const timeRangeOptions = [
+    { key: "all", label: "不限" },
+    { key: "today", label: "今天" },
+    { key: "yesterday", label: "昨天" },
+    { key: "thisWeek", label: "本周" },
+    { key: "lastWeek", label: "上周" },
+    { key: "thisMonth", label: "本月" },
+    { key: "lastMonth", label: "上月" },
+    { key: "custom", label: "自定义" }
+  ];
+
+  const isInTimeRange = (dateText, filter) => {
+    if (filter.timeRange === "all") return true;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(dateText + "T00:00:00");
+    let start = new Date(today);
+    let end = new Date(today);
+
+    if (filter.timeRange === "yesterday") {
+      start.setDate(start.getDate() - 1);
+      end = new Date(start);
+    } else if (filter.timeRange === "thisWeek" || filter.timeRange === "lastWeek") {
+      const mondayOffset = (today.getDay() + 6) % 7;
+      start.setDate(today.getDate() - mondayOffset - (filter.timeRange === "lastWeek" ? 7 : 0));
+      end = new Date(start);
+      end.setDate(start.getDate() + 6);
+    } else if (filter.timeRange === "thisMonth") {
+      start = new Date(today.getFullYear(), today.getMonth(), 1);
+      end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else if (filter.timeRange === "lastMonth") {
+      start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      end = new Date(today.getFullYear(), today.getMonth(), 0);
+    } else if (filter.timeRange === "custom") {
+      if (!filter.customStart && !filter.customEnd) return true;
+      if (filter.customStart) start = new Date(filter.customStart + "T00:00:00");
+      else start = new Date("1970-01-01T00:00:00");
+      if (filter.customEnd) end = new Date(filter.customEnd + "T23:59:59");
+      else end = new Date("2999-12-31T23:59:59");
+    }
+    return target >= start && target <= end;
+  };
+
+  const filterList = (list) => list.filter(item =>
+    (!searchText || item.voucherNo.includes(searchText) || item.projectName.includes(searchText)) &&
+    (bizFilter === "all" || item.bizType === bizFilter) &&
+    (advancedFilter.flowType === "all" || item.flowType === advancedFilter.flowType) &&
+    (advancedFilter.submitter === "all" || getItemSubmitterName(item) === advancedFilter.submitter) &&
+    isInTimeRange(item.incomeDate, advancedFilter)
+  );
+  const todoList = filterList(allTodoList);
+  const doneList = filterList(allDoneList);
+  const doingList = filterList(allDoingList);
+  const todoCount = todoList.length;
+  const batchEligibleItems = todoList.filter(item => item.flowType === "incomeSplit" && item.node === "部组负责人");
+  const currentBizLabel = bizTypes.find(b => b.key === bizFilter).label;
+  const financeCount = allTodoList.filter(i => i.bizType === "finance").length;
+  const hasAdvancedFilter = advancedFilter.flowType !== "all" ||
+    advancedFilter.submitter !== "all" ||
+    advancedFilter.timeRange !== "all";
+  const openAdvancedFilter = () => {
+    setDraftAdvancedFilter({ ...advancedFilter });
+    setShowBizPanel(false);
+    setShowAdvancedFilter(true);
+  };
+  const resetAdvancedFilter = () => {
+    setDraftAdvancedFilter({ ...emptyAdvancedFilter });
+  };
+  const confirmAdvancedFilter = () => {
+    setAdvancedFilter({ ...draftAdvancedFilter });
+    setShowAdvancedFilter(false);
+  };
+  const switchTab = (nextTab) => {
+    setTab(nextTab);
+    if (onTabChange) onTabChange(nextTab);
+    setBatchMode(false);
+    setSelectedBatchIds([]);
+  };
+  const toggleBatchItem = (item) => {
+    setSelectedBatchIds(ids => ids.includes(item.id)
+      ? ids.filter(id => id !== item.id)
+      : [...ids, item.id]);
+  };
+  const toggleAllBatchItems = () => {
+    const eligibleIds = batchEligibleItems.map(item => item.id);
+    const allSelected = eligibleIds.length > 0 && eligibleIds.every(id => selectedBatchIds.includes(id));
+    setSelectedBatchIds(allSelected ? [] : eligibleIds);
+  };
+  const exitBatchMode = () => {
+    setBatchMode(false);
+    setSelectedBatchIds([]);
+    setBatchSheet(null);
+  };
+  const confirmBatchApproval = (mode, opinion) => {
+    if (mode === "reject" && !opinion.trim()) {
+      setBatchToast({ type: "warning", text: "批量退回时请填写审批意见" });
+      setTimeout(() => setBatchToast(null), 1800);
+      return;
+    }
+    const count = selectedBatchIds.length;
+    setProcessedBatchIds(ids => [...ids, ...selectedBatchIds]);
+    setBatchSheet(null);
+    setBatchMode(false);
+    setSelectedBatchIds([]);
+    setBatchToast({ type: "success", text: `已批量${mode === "reject" ? "退回" : "同意"}${count}条任务` });
+    setTimeout(() => setBatchToast(null), 1800);
+  };
+
+  return (
+    <div className="flex-col" data-review-scene="list">
+      <NavBar title="待办处理" />
+      <div className="tabs">
+        <div className={"tab" + (tab === "todo" ? " active" : "")} onClick={() => switchTab("todo")}>
+          待办{todoCount > 0 && <span className="tab-count">({todoCount})</span>}
+        </div>
+        <div className={"tab" + (tab === "doing" ? " active" : "")} onClick={() => switchTab("doing")}>
+          在办{doingList.length > 0 && <span className="tab-count">({doingList.length})</span>}
+        </div>
+        <div className={"tab" + (tab === "done" ? " active" : "")} onClick={() => switchTab("done")}>
+          办结
+        </div>
+        <div className={"tab" + (tab === "circulate" ? " active" : "")} onClick={() => switchTab("circulate")}>
+          传阅<span className="tab-count">(0)</span>
+        </div>
+      </div>
+      <div className="search-bar">
+        <div className="search-input-wrap">
+          <svg className="search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="6" cy="6" r="5" stroke="#8c8c8c" strokeWidth="1.2"/>
+            <path d="M10 10L13 13" stroke="#8c8c8c" strokeWidth="1.2" strokeLinecap="round"/>
+          </svg>
+          <input
+            type="text"
+            placeholder="主题"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+        </div>
+        <button
+          type="button"
+          className={"search-filter-btn" + (hasAdvancedFilter ? " active" : "")}
+          aria-label="筛选"
+          onClick={openAdvancedFilter}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M4 5H20L14 12V18L10 20V12L4 5Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          {hasAdvancedFilter && <span className="search-filter-dot" />}
+        </button>
+      </div>
+      <div className="filter-bar">
+        <button className={"filter-btn" + (showBizPanel ? " active" : "")} onClick={() => setShowBizPanel(!showBizPanel)}>
+          {currentBizLabel}
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 2L4 5L7 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+        </button>
+        <button className="filter-btn filter-btn-gray">
+          最新到达优先
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1 2L4 5L7 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+        </button>
+        {tab === "todo" && !batchMode && batchEligibleItems.length > 0 && (
+          <button
+            type="button"
+            className="batch-entry-btn"
+            aria-label="进入批量审批模式"
+            data-review-scene="list-batch"
+            onClick={() => { setBatchMode(true); setSelectedBatchIds([]); }}
+          >
+            批量审批
+          </button>
+        )}
+      </div>
+      {tab === "todo" && batchMode && (
+        <div className="batch-selection-bar" data-review-scene="list-batch">
+          <span>已选择 {selectedBatchIds.length} 条</span>
+          <div className="batch-selection-actions">
+            <button type="button" className="batch-text-btn" onClick={toggleAllBatchItems}>
+              {batchEligibleItems.length > 0 && batchEligibleItems.every(item => selectedBatchIds.includes(item.id)) ? "取消全选" : "全选"}
+            </button>
+            <button type="button" className="batch-text-btn" onClick={exitBatchMode}>取消</button>
+          </div>
+        </div>
+      )}
+      {showBizPanel && (
+        <React.Fragment>
+          <div className="biz-panel-mask" onClick={() => setShowBizPanel(false)} />
+          <div className="biz-panel">
+            {bizTypes.map(b => (
+              <div
+                key={b.key}
+                className={"biz-panel-item" + (bizFilter === b.key ? " active" : "")}
+                onClick={() => { setBizFilter(b.key); setShowBizPanel(false); }}
+              >
+                {b.label}
+                {b.key !== "all" && <span className="biz-panel-count">({b.key === "finance" ? financeCount : 0})</span>}
+              </div>
+            ))}
+          </div>
+        </React.Fragment>
+      )}
+      {showAdvancedFilter && (
+        <div className="advanced-filter-mask" onClick={() => setShowAdvancedFilter(false)}>
+          <div className="advanced-filter-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="advanced-filter-header">
+              <div className="advanced-filter-title">筛选</div>
+              <button type="button" className="advanced-filter-close" aria-label="关闭" onClick={() => setShowAdvancedFilter(false)}>×</button>
+            </div>
+            <div className="advanced-filter-body">
+              <div className="advanced-filter-group">
+                <label className="advanced-filter-label">流程类型</label>
+                <select
+                  className="advanced-filter-select"
+                  value={draftAdvancedFilter.flowType}
+                  onChange={(e) => setDraftAdvancedFilter({ ...draftAdvancedFilter, flowType: e.target.value })}
+                >
+                  <option value="all">全部流程</option>
+                  <option value="incomeConfirm">收入确认申请流程</option>
+                  <option value="incomeSplit">收入切分申请流程</option>
+                </select>
+              </div>
+              <div className="advanced-filter-group">
+                <label className="advanced-filter-label">发起人</label>
+                <select
+                  className="advanced-filter-select"
+                  value={draftAdvancedFilter.submitter}
+                  onChange={(e) => setDraftAdvancedFilter({ ...draftAdvancedFilter, submitter: e.target.value })}
+                >
+                  <option value="all">请选择</option>
+                  {submitters.map(name => <option key={name} value={name}>{name}</option>)}
+                </select>
+              </div>
+              <div className="advanced-filter-group">
+                <div className="advanced-filter-label">时间范围</div>
+                <div className="time-range-grid">
+                  {timeRangeOptions.map(option => (
+                    <button
+                      type="button"
+                      key={option.key}
+                      className={"time-range-btn" + (draftAdvancedFilter.timeRange === option.key ? " active" : "")}
+                      onClick={() => setDraftAdvancedFilter({ ...draftAdvancedFilter, timeRange: option.key })}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                {draftAdvancedFilter.timeRange === "custom" && (
+                  <div className="custom-date-range">
+                    <input
+                      type="date"
+                      aria-label="开始日期"
+                      value={draftAdvancedFilter.customStart}
+                      onChange={(e) => setDraftAdvancedFilter({ ...draftAdvancedFilter, customStart: e.target.value })}
+                    />
+                    <span className="custom-date-separator">至</span>
+                    <input
+                      type="date"
+                      aria-label="结束日期"
+                      value={draftAdvancedFilter.customEnd}
+                      onChange={(e) => setDraftAdvancedFilter({ ...draftAdvancedFilter, customEnd: e.target.value })}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="advanced-filter-actions">
+              <button type="button" className="advanced-filter-action advanced-filter-reset" onClick={resetAdvancedFilter}>重置</button>
+              <button type="button" className="advanced-filter-action advanced-filter-confirm" onClick={confirmAdvancedFilter}>确定</button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="content" style={batchMode ? { paddingBottom: 72 } : null}>
+        <div className="list-container-v2">
+          {tab === "todo" ? (
+            todoList.length > 0 ? (
+              todoList.map(item => {
+                const isIncomeConfirm = item.flowType === "incomeConfirm";
+                const handleClick = () => {
+                  if (isIncomeConfirm) return onApproveIncomeConfirm(item);
+                  return onApprove(item);
+                };
+                return (
+                  <ListCard
+                    key={item.id}
+                    item={item}
+                    onClick={handleClick}
+                    onAction={handleClick}
+                    batchMode={batchMode}
+                    batchEligible={item.flowType === "incomeSplit" && item.node === "部组负责人"}
+                    selected={selectedBatchIds.includes(item.id)}
+                    onSelect={toggleBatchItem}
+                    reviewScene={getReviewSceneForListItem(item)}
+                  />
+                );
+              })
+            ) : (
+              <div className="empty-state">
+                <div className="empty-icon">📋</div>
+                <div className="empty-text">暂无待办事项</div>
+              </div>
+            )
+          ) : tab === "done" ? (
+            doneList.length > 0 ? (
+              doneList.map(item => {
+                const isIncomeConfirm = item.flowType === "incomeConfirm";
+                const handleClick = () => isIncomeConfirm ? onViewIncomeConfirmDetail(item) : onViewDetail(item);
+                return (
+                  <ListCard
+                    key={item.id}
+                    item={item}
+                    onClick={handleClick}
+                    onAction={handleClick}
+                    actionLabel="查看"
+                    reviewScene={getReviewSceneForListItem(item)}
+                  />
+                );
+              })
+            ) : (
+              <div className="empty-state">
+                <div className="empty-icon">📋</div>
+                <div className="empty-text">暂无已办事项</div>
+              </div>
+            )
+          ) : tab === "doing" ? (
+            doingList.length > 0 ? (
+              doingList.map(item => {
+                const isIncomeConfirm = item.flowType === "incomeConfirm";
+                const handleClick = () => isIncomeConfirm ? onViewIncomeConfirmDetail(item) : onViewDetail(item);
+                return (
+                  <ListCard
+                    key={item.id}
+                    item={item}
+                    onClick={handleClick}
+                    onAction={handleClick}
+                    actionLabel="查看"
+                    reviewScene={getReviewSceneForListItem(item)}
+                  />
+                );
+              })
+            ) : (
+              <div className="empty-state">
+                <div className="empty-icon">📋</div>
+                <div className="empty-text">暂无在办事项</div>
+              </div>
+            )
+          ) : (
+            <div className="empty-state">
+              <div className="empty-icon">📋</div>
+              <div className="empty-text">暂无数据</div>
+            </div>
+          )}
+          <div className="list-end-tip">没有更多了</div>
+        </div>
+      </div>
+      {batchMode && (
+        <div className="bottom-bar" data-review-scene="list-batch">
+          <button
+            className="btn btn-danger btn-block"
+            disabled={selectedBatchIds.length === 0}
+            onClick={() => setBatchSheet("reject")}
+          >
+            退回
+          </button>
+          <button
+            className="btn btn-primary btn-block"
+            disabled={selectedBatchIds.length === 0}
+            onClick={() => setBatchSheet("approve")}
+          >
+            同意
+          </button>
+        </div>
+      )}
+      {batchSheet && (
+        <ApprovalSheet
+          mode={batchSheet}
+          title={batchSheet === "reject" ? "批量退回" : "批量审批"}
+          description={`已选择 ${selectedBatchIds.length} 条收入切分任务`}
+          reviewScene="list-batch"
+          onCancel={() => setBatchSheet(null)}
+          onConfirm={(opinion) => confirmBatchApproval(batchSheet, opinion)}
+        />
+      )}
+      {batchToast && (
+        <div className="toast-mask" onClick={() => setBatchToast(null)}>
+          <div className="toast-box">
+            <div className="toast-icon">{batchToast.type === "success" ? "✅" : "⚠️"}</div>
+            <div className="toast-text">{batchToast.text}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CollapsibleSection({ title, children, defaultOpen, reviewScene }) {
+  const [open, setOpen] = useState(defaultOpen !== false);
+  return (
+    <div className="detail-section" data-review-scene={reviewScene}>
+      <div className="section-header" onClick={() => setOpen(!open)}>
+        <span className="section-title">{title}</span>
+        <span className={"section-arrow" + (open ? "" : " collapsed")}>▼</span>
+      </div>
+      {open && <div className="section-body">{children}</div>}
+    </div>
+  );
+}
+
+/* ===== 单列 label-value 行（与现有待办详情页统一） ===== */
+function InfoRow({ label, value, isAmount, isLink }) {
+  return (
+    <div className="info-row">
+      <span className="info-row-label">{label}</span>
+      <span className={"info-row-value" + (isAmount ? " amount" : "") + (isLink ? " link" : "")}>{value}</span>
+    </div>
+  );
+}
+
+/* ===== 顶部卡片：项目名称为主，发起人降为副行 =====
+   仅使用 PC 端确实存在的字段（项目名称、流程类型、状态、提交人姓名、提交时间），
+   不展示头像、登录账号、岗位——PC 端原型均无，ESB 不一定能取到 */
+function getStamp(status) {
+  if (status === "审批完成") return { text: "已完成", cls: "done" };
+  if (status === "退回") return { text: "已退回", cls: "reject" };
+  if (status === "新建") return { text: "待提交", cls: "new" };
+  return { text: "处理中", cls: "" };
+}
+
+function FlowHeaderCard({ submitter, status, projectName, flowType }) {
+  const stamp = getStamp(status);
+  const flowLabel = flowType === "incomeConfirm" ? "收入确认" : "收入切分";
+  const flowTagClass = flowType === "incomeConfirm" ? "flow-tag-confirm" : "flow-tag-split";
+  return (
+    <div className="flow-header-card">
+      <div className={"flow-stamp " + stamp.cls}>{stamp.text}</div>
+      <div className="flow-header-main">
+        <span className={"flow-title-tag " + flowTagClass}>{flowLabel}</span>
+        {projectName}
+      </div>
+      <div className="flow-header-sub">
+        <span>发起人 {submitter.name}</span>
+        <span>{submitter.time}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ===== 明细 / 审批记录 页签 =====
+   注：现有待办详情页还有「步骤明细」「流程图」两个页签，
+   但 PC 端需求与原型均无节点流转数据，ESB 取不到，本期隐藏 */
+const DETAIL_TABS = [
+  { key: "detail", label: "明细" },
+  { key: "opinion", label: "审批记录" }
+];
+
+function DetailTabs({ tab, onChange, detailReviewScene }) {
+  return (
+    <div className="detail-tabs">
+      {DETAIL_TABS.map(t => (
+        <div
+          key={t.key}
+          className={"detail-tab" + (tab === t.key ? " active" : "")}
+          data-review-scene={t.key === "opinion" ? "split-5-records" : detailReviewScene}
+          onClick={() => onChange(t.key)}
+        >
+          {t.label}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* 审批记录页签：按审批时间倒序展示节点名称、处理人和时间；仅退回节点展示审批意见 */
+function ApprovalRecordTab({ records }) {
+  const sorted = records.slice().reverse();
+  return (
+    <CollapsibleSection title="审批记录" reviewScene="split-5-records">
+      <div className="timeline">
+        {sorted.map((r, i) => (
+          <div className="timeline-item" key={i}>
+            <div className={"timeline-dot " + (r.action === "approve" ? "approved" : r.action === "submit" ? "submitted" : r.action === "reject" ? "rejected" : "pending")}></div>
+            <div className="timeline-content">
+              <div className="timeline-header">
+                <span className="timeline-time">{r.time}</span>
+                <div className="timeline-node-row">
+                  <span className="timeline-node-name">{r.nodeName}</span>
+                  <span className="timeline-approver">- {r.name}</span>
+                </div>
+              </div>
+              {r.action === "reject" && r.opinion && <div className="timeline-opinion">{r.opinion}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </CollapsibleSection>
+  );
+}
+
+
+/* 审批处理浮层：同意仅二次确认，退回时审批意见必填 */
+function ApprovalSheet({ mode, onCancel, onConfirm, title, description, reviewScene }) {
+  const [opinion, setOpinion] = useState("");
+  const isReject = mode === "reject";
+  return (
+    <div className="modal-mask" data-review-scene={reviewScene} onClick={onCancel}>
+      <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-title">{title || (isReject ? "退回" : "审批确认")}</div>
+        {(description || !isReject) && (
+          <div className="modal-content">{description || "确认同意该审批事项？"}</div>
+        )}
+        {isReject && (
+          <React.Fragment>
+            <div className="textarea-label">
+              审批意见<span className="required-mark">*</span>
+            </div>
+            <textarea
+              className="textarea"
+              placeholder="请填写退回原因（必填）"
+              value={opinion}
+              onChange={(e) => setOpinion(e.target.value)}
+              maxLength={200}
+            />
+          </React.Fragment>
+        )}
+        <div className="modal-actions" style={{ marginTop: 16 }}>
+          <button className="btn btn-default" onClick={onCancel}>取消</button>
+          <button
+            className={"btn " + (isReject ? "btn-danger" : "btn-primary")}
+            onClick={() => onConfirm(isReject ? opinion : "")}
+          >
+            {isReject ? "确认退回" : "同意"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===== 收入切分「明细」页签内容（审批页/详情页共用） ===== */
+function IncomeSplitDetailBody({ detail, onViewHistory }) {
+  return (
+    <React.Fragment>
+      <CollapsibleSection title="流程基本信息">
+        <div className="info-list">
+          <InfoRow label="流程文号" value={detail.basicInfo.flowNo} />
+          <InfoRow label="确认人" value={detail.basicInfo.confirmer} />
+          <InfoRow label="申请部门" value={detail.basicInfo.applyDept} />
+          <InfoRow label="申请日期" value={detail.basicInfo.applyDate} />
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="收入信息">
+        <div className="info-list">
+          <InfoRow label="凭证号" value={detail.basicInfo.voucherNo} />
+          <InfoRow label="收入金额" value={formatCurrency(detail.basicInfo.amount) + " 元"} isAmount />
+          <InfoRow label="预估支出金额" value={formatCurrency(detail.basicInfo.estimatedCost) + " 元"} />
+          <InfoRow label="摘要" value={detail.basicInfo.summary} />
+          <InfoRow label="辅助核算项-投行项目" value={detail.basicInfo.auxAccounting} />
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="项目信息">
+        <div className="info-list">
+          <InfoRow label="项目名称" value={detail.basicInfo.projectName} isLink />
+          <InfoRow label="项目编号" value={detail.basicInfo.projectNo} />
+          <InfoRow label="项目类型" value={detail.basicInfo.projectType} isLink />
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="项目已完成收入切分明细" defaultOpen={false} reviewScene="split-5-history">
+        <div className="table-wrap">
+          <table className="mini-table">
+            <thead>
+              <tr>
+                <th>凭证号</th>
+                <th>主办部门</th>
+                <th>主办比例</th>
+                <th>协办部门</th>
+                <th>协办比例</th>
+                <th>分支机构</th>
+                <th>分支比例</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detail.historySplits.map((s, i) => (
+                <tr key={i}>
+                  <td>{s.voucherNo}</td>
+                  <td>{s.mainDept}</td>
+                  <td>{s.mainRatio}</td>
+                  <td>{s.coDept}</td>
+                  <td>{s.coRatio}</td>
+                  <td>{s.branch}</td>
+                  <td>{s.branchRatio}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="link-action table-detail-action"
+                      aria-label={"查看" + s.voucherNo + "历史切分详情"}
+                      data-review-scene="split-5-history"
+                      onClick={() => onViewHistory(detail.historyDetailData[i])}
+                    >
+                      详情
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="转出分支详情">
+        <div className="info-list">
+          <InfoRow label="业务类型" value={detail.branchOverview.bizType} />
+          <InfoRow label="核算要素" value={detail.branchOverview.accountElement} />
+          <InfoRow label="切分金额" value={formatCurrency(detail.branchOverview.totalAmount) + " 元"} isAmount />
+          <InfoRow label="切分比例" value={detail.branchOverview.splitRatio} />
+          <InfoRow label="备注" value={detail.branchOverview.remark} />
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="本次收入分成明细">
+        <div className="table-wrap">
+          <table className="mini-table">
+            <thead>
+              <tr>
+                <th>类型</th>
+                <th>部门名称</th>
+                <th>分成比例</th>
+                <th>分成金额（元）</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detail.currentSplits.map((s, i) => (
+                <tr key={i}>
+                  <td>{s.type}</td>
+                  <td>{s.deptName}</td>
+                  <td>{s.ratio}</td>
+                  <td className="amount">{formatCurrency(s.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="分支机构员工贡献度">
+        <div className="table-wrap">
+          <table className="mini-table">
+            <thead>
+              <tr>
+                <th>部门名称</th>
+                <th>姓名</th>
+                <th>工号</th>
+                <th>贡献度比例</th>
+                <th>收入金额（元）</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detail.branchContributions.map((bc, bci) =>
+                bc.members.map((c, mi) => (
+                  <tr key={bci + "-" + mi}>
+                    <td>{bc.branchName}</td>
+                    <td>{c.name}</td>
+                    <td>{c.empNo}</td>
+                    <td>{c.ratio}</td>
+                    <td className="amount">{formatCurrency(c.amount)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </CollapsibleSection>
+    </React.Fragment>
+  );
+}
+
+/* ===== 收入确认「明细」页签内容（审批页/详情页共用） ===== */
+/* 字段范围严格对齐 PC 端原型与需求 3.1.3 输出表：
+   不设「流程基本信息」分组——PC 端收入确认审批页无任何人员/流程字段，
+   发起人与发起时间已在顶部卡片呈现，不再重复 */
+function IncomeConfirmDetailBody({ detail, defaultReviewScene }) {
+  const showIssueCode = detail.issueCode && detail.projectType !== "非股非债";
+  return (
+    <React.Fragment>
+      <CollapsibleSection title="收入信息" reviewScene={defaultReviewScene}>
+        <div className="info-list">
+          <InfoRow label="凭证号" value={detail.basicInfo.voucherNo} />
+          <InfoRow label="科目" value={detail.basicInfo.subject} />
+          <InfoRow label="收入金额" value={formatCurrency(detail.basicInfo.amount) + " 元"} isAmount />
+          <InfoRow label="收入归属部组" value={detail.basicInfo.incomeDept} />
+          <InfoRow label="收入日期" value={detail.basicInfo.incomeDate} />
+          <InfoRow label="摘要" value={detail.basicInfo.summary} />
+          <InfoRow label="辅助核算项-投行项目" value={detail.basicInfo.auxAccounting} />
+          <InfoRow label="备注" value={detail.basicInfo.remark} />
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="项目信息" reviewScene={showIssueCode ? "confirm-102-project" : "confirm-103-project"}>
+        <div className="info-list">
+          <InfoRow label="项目名称" value={detail.basicInfo.projectName} isLink />
+          <InfoRow label="项目编号" value={detail.basicInfo.projectNo} />
+          <InfoRow label="项目类型" value={detail.projectType} />
+          {showIssueCode && <InfoRow label="发行代码" value={detail.issueCode} />}
+        </div>
+      </CollapsibleSection>
+
+    </React.Fragment>
+  );
+}
+
+function ApprovalPage({ item, onBack, onSubmit, onViewHistory, initialTab = "detail", initialSheet = null }) {
+  const [tab, setTab] = useState(initialTab);
+  const [sheet, setSheet] = useState(initialSheet);
+  const [showToast, setShowToast] = useState(null);
+  const detail = getSplitDetail(item);
+
+  const handleConfirm = (mode, opinion) => {
+    if (mode === "reject" && !opinion.trim()) {
+      setShowToast({ type: "warning", text: "退回时请填写审批意见" });
+      setTimeout(() => setShowToast(null), 2000);
+      return;
+    }
+    setSheet(null);
+    setShowToast({ type: "success", text: mode === "reject" ? "已退回至流程首节点" : "审批提交成功" });
+    setTimeout(() => {
+      setShowToast(null);
+      onSubmit();
+    }, 1500);
+  };
+
+  return (
+    <div className="flex-col screen-enter" data-review-scene={getReviewSceneForListItem(item)}>
+      <NavBar title="收入切分审批" onBack={onBack} />
+      <div className="content" style={{ paddingBottom: 80 }}>
+        <FlowHeaderCard submitter={detail.submitter} status={item.status} projectName={detail.basicInfo.projectName} flowType="incomeSplit" />
+        <DetailTabs tab={tab} onChange={setTab} detailReviewScene={getReviewSceneForListItem(item)} />
+
+        {tab === "detail" && <IncomeSplitDetailBody detail={detail} onViewHistory={onViewHistory} />}
+        {tab === "opinion" && <ApprovalRecordTab records={detail.approvalRecords} />}
+      </div>
+
+      <div className="bottom-bar">
+        <button className="btn btn-ghost btn-block" data-review-scene="confirm-101-reject" onClick={() => setSheet("reject")}>退回</button>
+        <button className="btn btn-primary btn-block" data-review-scene="confirm-101-reject" onClick={() => setSheet("approve")}>同意</button>
+      </div>
+
+      {sheet && (
+        <ApprovalSheet
+          mode={sheet}
+          reviewScene="confirm-101-reject"
+          onCancel={() => setSheet(null)}
+          onConfirm={(op) => handleConfirm(sheet, op)}
+        />
+      )}
+
+      {showToast && (
+        <div className="toast-mask" onClick={() => showToast.type === "success" && setShowToast(null)}>
+          <div className="toast-box">
+            <div className="toast-icon">
+              {showToast.type === "success" ? "✅" : "⚠️"}
+            </div>
+            <div className="toast-text">{showToast.text}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TransferPage({ onBack, onConfirm }) {
+  const [selectedId, setSelectedId] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+
+  const handleConfirm = () => {
+    if (!selectedId) {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+      return;
+    }
+    const member = mockMembers.find(m => m.id === selectedId);
+    setShowToast({ type: "success", text: "已转办给" + member.name });
+    setTimeout(() => {
+      setShowToast(null);
+      onConfirm();
+    }, 1500);
+  };
+
+  return (
+    <div className="flex-col screen-enter" data-review-scene="split-1">
+      <NavBar title="转办" onBack={onBack} />
+      <div style={{ padding: "12px 16px", color: "var(--text-hint)", fontSize: 13, background: "#fff", borderBottom: "0.5px solid var(--border-light)" }}>
+        请选择项目成员转办，转办后由该成员填写收入切分信息，提交后由项目负责人审批。
+      </div>
+      <div className="content">
+        <div className="member-list">
+          {mockMembers.map(m => (
+            <div
+              key={m.id}
+              className={"member-item" + (selectedId === m.id ? " selected" : "")}
+              onClick={() => setSelectedId(m.id)}
+            >
+              <div className="member-info">
+                <div className="member-name">{m.name}</div>
+                <div className="member-detail">{m.position} · {m.org} · {m.dept}</div>
+              </div>
+              <div className="member-check"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="bottom-bar">
+        <button className="btn btn-outline btn-block" onClick={onBack}>关闭</button>
+        <button className="btn btn-primary btn-block" onClick={handleConfirm}>确定</button>
+      </div>
+      {showToast && (
+        <div className="toast-mask">
+          <div className="toast-box">
+            <div className="toast-icon">{typeof showToast === "object" ? "✅" : "⚠️"}</div>
+            <div className="toast-text">{typeof showToast === "object" ? showToast.text : "请选择转办人员"}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailPage({ item, onBack, onViewHistory, initialTab = "detail" }) {
+  const [tab, setTab] = useState(initialTab);
+  const detail = getSplitDetail(item);
+  return (
+    <div className="flex-col screen-enter" data-review-scene="split-5-history">
+      <NavBar title="收入切分详情" onBack={onBack} />
+      <div className="content" style={{ paddingBottom: 80 }}>
+        <FlowHeaderCard submitter={detail.submitter} status={item.status} projectName={detail.basicInfo.projectName} flowType="incomeSplit" />
+        <DetailTabs tab={tab} onChange={setTab} detailReviewScene="split-5-history" />
+
+        {tab === "detail" && <IncomeSplitDetailBody detail={detail} onViewHistory={onViewHistory} />}
+        {tab === "opinion" && <ApprovalRecordTab records={detail.approvalRecords} />}
+      </div>
+      <div className="bottom-bar">
+        <button className="btn btn-default btn-block" onClick={onBack}>关闭</button>
+      </div>
+    </div>
+  );
+}
+
+function HistorySplitDetailPage({ data, onBack }) {
+  const d = data || mockHistoryDetail;
+  return (
+    <div className="flex-col screen-enter" data-review-scene="split-5-history">
+      <NavBar title="收入切分详情" onBack={onBack} />
+      <div className="content" style={{ paddingBottom: 20 }}>
+        <CollapsibleSection title="基础信息">
+          <div className="info-list">
+            <InfoRow label="确认人" value={d.confirmer} />
+            <InfoRow label="申请部门" value={d.applyDept} />
+            <InfoRow label="申请日期" value={d.applyDate} />
+            <InfoRow label="凭证号" value={d.voucherNo} />
+            <InfoRow label="项目名称" value={d.projectName} isLink />
+            <InfoRow label="项目编号" value={d.projectNo} />
+            <InfoRow label="预估支出" value={formatCurrency(d.estimatedCost) + " 元"} />
+            <InfoRow label="收入金额" value={formatCurrency(d.amount) + " 元"} isAmount />
+          </div>
+        </CollapsibleSection>
+
+        <CollapsibleSection title="项目收入分成明细">
+          <div className="table-wrap">
+            <table className="mini-table">
+              <thead>
+                <tr>
+                  <th>类型</th>
+                  <th>部门名称</th>
+                  <th>收入分成比例</th>
+                  <th>分成金额（元）</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.splits.map((s, i) => (
+                  <tr key={i}>
+                    <td>{s.type}</td>
+                    <td>{s.deptName}</td>
+                    <td>{s.ratio}</td>
+                    <td className="amount">{formatCurrency(s.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CollapsibleSection>
+      </div>
+      <div className="bottom-bar">
+        <button className="btn btn-default btn-block" onClick={onBack}>关闭</button>
+      </div>
+    </div>
+  );
+}
+
+/* ===== 收入确认审批页 ===== */
+function IncomeConfirmApprovalPage({ item, onBack, onSubmit, initialTab = "detail", initialSheet = null }) {
+  const [tab, setTab] = useState(initialTab);
+  const [sheet, setSheet] = useState(initialSheet);
+  const [showToast, setShowToast] = useState(null);
+  const detail = getConfirmDetail(item);
+
+  const handleConfirm = (mode, opinion) => {
+    if (mode === "reject" && !opinion.trim()) {
+      setShowToast("退回时请填写审批意见");
+      setTimeout(() => setShowToast(null), 2000);
+      return;
+    }
+    setSheet(null);
+    setShowToast(mode === "reject" ? "已退回至流程首节点" : "提交成功");
+    setTimeout(() => { setShowToast(null); onSubmit(); }, 1500);
+  };
+
+  return (
+    <div className="flex-col screen-enter" data-review-scene={getReviewSceneForListItem(item)}>
+      <NavBar title="收入确认审批" onBack={onBack} />
+      <div className="content" style={{ paddingBottom: 80 }}>
+        <FlowHeaderCard submitter={detail.submitter} status={item.status} projectName={detail.basicInfo.projectName} flowType="incomeConfirm" />
+        <DetailTabs tab={tab} onChange={setTab} detailReviewScene="confirm-101-approval" />
+
+        {tab === "detail" && <IncomeConfirmDetailBody detail={detail} defaultReviewScene="confirm-101-approval" />}
+        {tab === "opinion" && <ApprovalRecordTab records={detail.approvalRecords} />}
+      </div>
+
+      <div className="bottom-bar">
+        <button className="btn btn-ghost btn-block" data-review-scene="confirm-101-reject" onClick={() => setSheet("reject")}>退回</button>
+        <button className="btn btn-primary btn-block" data-review-scene="confirm-101-reject" onClick={() => setSheet("approve")}>同意</button>
+      </div>
+
+      {sheet && (
+        <ApprovalSheet
+          mode={sheet}
+          reviewScene="confirm-101-reject"
+          onCancel={() => setSheet(null)}
+          onConfirm={(op) => handleConfirm(sheet, op)}
+        />
+      )}
+
+      {showToast && (
+        <div className="toast-mask" onClick={() => setShowToast(null)}>
+          <div className="toast-box">
+            <div className="toast-icon">⚠️</div>
+            <div className="toast-text">{showToast}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ===== 收入确认详情页（只读） ===== */
+function IncomeConfirmDetailPage({ item, onBack, initialTab = "detail" }) {
+  const [tab, setTab] = useState(initialTab);
+  const detail = getConfirmDetail(item);
+  const detailReviewScene = detail.projectType === "非股非债" ? "confirm-103-project" : "confirm-102-project";
+  return (
+    <div className="flex-col screen-enter" data-review-scene={detailReviewScene}>
+      <NavBar title="收入确认详情" onBack={onBack} />
+      <div className="content" style={{ paddingBottom: 80 }}>
+        <FlowHeaderCard submitter={detail.submitter} status={item.status} projectName={detail.basicInfo.projectName} flowType="incomeConfirm" />
+        <DetailTabs tab={tab} onChange={setTab} detailReviewScene={detailReviewScene} />
+
+        {tab === "detail" && <IncomeConfirmDetailBody detail={detail} defaultReviewScene={detailReviewScene} />}
+        {tab === "opinion" && <ApprovalRecordTab records={detail.approvalRecords} />}
+      </div>
+      <div className="bottom-bar">
+        <button className="btn btn-default btn-block" onClick={onBack}>关闭</button>
+      </div>
+    </div>
+  );
+}
+
+function getReviewInitialScreen() {
+  const review = new URLSearchParams(window.location.search).get("review");
+  const splitTodo = id => mockTodoList.find(item => item.id === id);
+  const splitDone = id => mockDoneList.find(item => item.id === id);
+  const confirmTodo = id => mockIncomeConfirmTodoList.find(item => item.id === id);
+  const confirmDone = id => mockIncomeConfirmDoneList.find(item => item.id === id);
+
+  switch (review) {
+    case "list-batch":
+      return { name: "list", initialBatchMode: true, initialSelectedBatchIds: [2, 4] };
+    case "confirm-101":
+      return { name: "incomeConfirmApprove", item: confirmTodo(101) };
+    case "confirm-101-approval":
+      return { name: "incomeConfirmApprove", item: confirmTodo(101) };
+    case "confirm-102":
+      return { name: "incomeConfirmApprove", item: confirmTodo(102) };
+    case "confirm-102-project":
+      return { name: "incomeConfirmApprove", item: confirmTodo(102), initialScroll: 430 };
+    case "confirm-103-detail":
+      return { name: "incomeConfirmDetail", item: confirmDone(103) };
+    case "confirm-103-project":
+      return { name: "incomeConfirmDetail", item: confirmDone(103), initialScroll: 430 };
+    case "confirm-101-records":
+      return { name: "incomeConfirmApprove", item: confirmTodo(101), initialTab: "opinion" };
+    case "confirm-101-reject":
+      return { name: "incomeConfirmApprove", item: confirmTodo(101), initialSheet: "reject" };
+    case "split-1":
+      return { name: "approve", item: splitTodo(1) };
+    case "split-2":
+      return { name: "approve", item: splitTodo(2) };
+    case "split-3":
+      return { name: "approve", item: splitTodo(3) };
+    case "split-5-detail":
+      return { name: "detail", item: splitDone(5) };
+    case "split-5-history":
+      return { name: "detail", item: splitDone(5), initialScroll: 690 };
+    case "split-5-records":
+      return { name: "detail", item: splitDone(5), initialTab: "opinion" };
+    default:
+      return { name: "list" };
+  }
+}
+
+const reviewScenarioGuides = [
+  {
+    key: "list", number: "01", title: "待办列表与筛选",
+    logic: "收入确认、收入切分统一进入现有移动待办，不新增独立入口。",
+    points: ["遵循统一待办公共组件规范，卡片标题展示项目名称，字段区仅展示流程类型、发起人、当前节点和时间四个字段。", "卡片版式与公共待办保持一致：首行展示“投行”标签和项目名称，第二行展示流程类型和发起人，第三行展示当前节点和时间，操作按钮固定在右侧。", "凭证号、收入金额、摘要等业务字段移至详情页展示。", "公共筛选字段使用“发起人”，映射实际提交进入审批环节的人员。", "支持流程类型、发起人、时间范围筛选，以及“最新到达优先”“最久等待优先”排序；最久等待优先即按最早到达排序。", "PC端“已办”在移动端按流程状态拆分：流程未结束进入“在办”，流程已结束进入“办结”。", "从“待办”“在办”或“办结”进入详情后，返回或关闭时回到原列表页签。"],
+    boundary: "移动端负责查询、筛选、排序和进入审批；列表数据及流程状态由服务端返回，移动端按返回状态分类。",
+    note: "状态映射口径：PC端“已办”不直接对应单一移动页签。当前用户已处理但流程仍在流转时归入“在办”；流程实例已经结束时归入“办结”。"
+  },
+  {
+    key: "confirm-101", number: "02", title: "收入确认—未转办路径",
+    logic: "当服务端下发发起人为公文员的收入确认待办时，由项目负责人在移动端审批。",
+    points: ["顶部发起人显示服务端返回的实际提交人王芳。", "移动端提供明细、审批记录查看及同意、退回操作。"],
+    boundary: "移动端不提供项目关联、信息补充、提交或转办功能，仅处理服务端下发的项目负责人待办。",
+    note: "发起人取服务端返回的实际提交人；审批记录按接口返回内容展示。"
+  },
+  {
+    key: "confirm-102", number: "03", title: "收入确认—转办路径",
+    logic: "当服务端下发发起人为项目成员的收入确认待办时，由项目负责人在移动端审批。",
+    points: ["顶部发起人显示项目成员周八。", "审批记录按服务端返回内容展示。"],
+    boundary: "移动端不提供转办、信息补充或提交功能，仅处理服务端下发的项目负责人待办。",
+    note: "发起人以服务端返回的实际提交人字段为准，本场景显示项目成员周八。"
+  },
+  {
+    key: "confirm-102-project", number: "04", title: "收入确认—股权/债权项目信息",
+    logic: "发行代码作为项目关联结果，在“项目信息”中单独展示。",
+    points: ["字段顺序：项目名称、项目编号、项目类型、发行代码。", "不展示项目规模及证券简称、发行日期、承销金额等明细。"],
+    boundary: "移动端只读展示接口结果，不查询或维护发行代码。",
+    note: "发行代码用于审批人核对项目关联结果；仅在接口返回有效值时展示。"
+  },
+  {
+    key: "confirm-103-project", number: "05", title: "收入确认—非股非债项目信息",
+    logic: "非股非债项目没有发行代码时，隐藏整个字段。",
+    points: ["保留项目名称、项目编号和项目类型。", "不显示发行代码空行或“暂无”。"],
+    boundary: "字段展示取决于项目类型和接口返回值。",
+    note: "隐藏发行代码属于业务类型适配，不以空值或占位符代替。"
+  },
+  {
+    key: "confirm-101-approval", number: "06", title: "收入确认审批",
+    logic: "项目负责人查看收入信息、项目信息和审批记录后执行同意或退回。",
+    points: ["明细与审批记录通过页签切换。", "底部固定展示退回、同意按钮。", "同意仅二次确认；退回时审批意见必填。"],
+    boundary: "移动端不修改收入信息或项目信息。",
+    note: "审批人重点核对收入金额、摘要、关联项目，以及股权/债权项目的发行代码。"
+  },
+  {
+    key: "split-1", number: "07", title: "收入切分—转办路径",
+    logic: "当服务端下发发起人为项目成员、当前节点为项目负责人的收入切分待办时，由项目负责人在移动端审批。",
+    points: ["当前移动待办节点为项目负责人。", "顶部发起人显示实际提交审批的项目成员。", "转出分支详情展示业务类型、核算要素、切分金额、切分比例和备注。"],
+    boundary: "移动端不提供转办、信息补充或提交功能，只处理服务端下发的当前审批待办。",
+    note: "同意或退回后，移动端按服务端返回结果刷新列表和流程状态。"
+  },
+  {
+    key: "split-2", number: "08", title: "收入切分—未转办路径",
+    logic: "当服务端下发当前节点为部组负责人的收入切分待办时，移动端从部组负责人节点开始审批。",
+    points: ["当前移动待办节点为部组负责人。", "移动端展示明细、审批记录，并提供同意、退回操作。", "转出分支详情展示业务类型、核算要素、切分金额、切分比例和备注。"],
+    boundary: "移动端不执行信息补充、提交或跳过自审判断，当前审批节点以服务端下发结果为准。",
+    note: "移动端只展示并处理服务端下发的当前待办，不自行推导此前或后续审批节点。"
+  },
+  {
+    key: "split-3", number: "09", title: "分支机构审批",
+    logic: "当服务端下发分支机构承揽人或机构负责人的收入切分待办时，移动端展示并处理当前审批节点。",
+    points: ["页面展示服务端下发的当前承揽人会签待办。", "当前节点同意或退回后，按服务端返回结果更新待办状态。"],
+    boundary: "移动端不实现分支任务生成、并行或串行控制、会签完成条件和结果汇聚。",
+    note: "任务角色、当前节点和可操作状态均以服务端返回结果为准。"
+  },
+  {
+    key: "list-batch", number: "10", title: "部组负责人批量审批",
+    logic: "批量审批是收入切分特定审批节点的扩展能力，不要求收入确认及其他待办流程适配批量审批。",
+    points: ["仅在“待办”页签中，当前用户为对应节点的部组负责人，且存在不少于两条可批量处理的收入切分待办时，才展示“批量审批”入口。", "批量审批入口展示在筛选、排序工具栏右侧，不单独占用一行。", "进入批量模式后，仅服务端标识为可批量处理的收入切分待办可勾选；收入确认、其他流程及不支持批量的节点不可勾选。", "批量同意无需填写意见；批量退回必须填写退回意见。"],
+    boundary: "服务端返回当前用户、审批节点及每条待办是否可批量处理的能力标识；移动端据此控制入口显隐、可选范围和批量提交，不在端内硬编码判断角色。",
+    note: "不满足显示条件时完全隐藏批量审批入口；“在办”“办结”和“传阅”页签均不展示。其他流程后续如需支持批量审批，可通过同一能力标识接入。"
+  },
+  {
+    key: "split-5-history", number: "11", title: "历史收入切分详情",
+    logic: "“项目已完成收入切分明细”表提供“详情”操作。",
+    points: ["“项目已完成收入切分明细”默认折叠，由审批人按需展开，优先展示当前待办信息。", "点击详情查看历史流程和切分结果。", "历史切分金额应满足：（收入金额－预估支出金额）×切分比例＝切分金额。", "历史数据仅用于当前审批参考。", "关闭历史详情后返回当前收入切分详情，不跳回待办列表。"],
+    boundary: "移动端只读展示历史数据。",
+    note: "历史详情用于辅助审批人判断当前切分方案，不支持修改或再次发起切分。"
+  },
+  {
+    key: "split-5-records", number: "12", title: "审批记录",
+    logic: "审批记录按最新节点在上展示节点名称、处理人和时间；仅退回节点展示审批意见。",
+    points: ["展示服务端返回的节点名称、处理人和处理时间。", "仅退回节点展示审批意见，其他节点不显示意见区域。"],
+    boundary: "哪些节点进入审批记录由服务端定义并返回；移动端不判断、不补充记录节点。",
+    note: "移动端提交同意或退回动作后重新查询审批记录，并按接口返回结果刷新展示。"
+  },
+  {
+    key: "confirm-101-reject", number: "13", title: "同意与退回",
+    logic: "同意无需填写意见；退回意见必填。",
+    points: ["当前场景直接展示真实退回弹层。", "关闭弹层后可点击同意，查看无意见输入框的确认方式。"],
+    boundary: "移动端提交动作和退回意见，下一节点以服务端返回为准。",
+    note: "该处理规则适用于收入确认、收入切分的全部移动审批节点。"
+  }
+];
+
+const REVIEW_SCENE_EVENT = "review-scene-change";
+
+function setReviewSceneContext(key) {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("annotate") !== "1") return;
+  if (!reviewScenarioGuides.some(item => item.key === key)) return;
+  const nextUrl = new URL(window.location.href);
+  nextUrl.searchParams.set("review", key);
+  window.history.replaceState(null, "", nextUrl.toString());
+  window.dispatchEvent(new CustomEvent(REVIEW_SCENE_EVENT, { detail: key }));
+}
+
+function ReviewGuide() {
+  const [open, setOpen] = useState(true);
+  const params = new URLSearchParams(window.location.search);
+  const annotated = params.get("annotate") === "1";
+  const [currentKey, setCurrentKey] = useState(params.get("review") || "list");
+
+  useEffect(() => {
+    document.body.classList.toggle("review-mode-body", annotated && open);
+    return () => document.body.classList.remove("review-mode-body");
+  }, [annotated, open]);
+
+  useEffect(() => {
+    if (!annotated) return undefined;
+    const handleSceneChange = event => setCurrentKey(event.detail || "list");
+    const handlePrototypeClick = event => {
+      if (!(event.target instanceof Element)) return;
+      const contextElement = event.target.closest("[data-review-scene]");
+      if (contextElement && contextElement.dataset.reviewScene) {
+        setReviewSceneContext(contextElement.dataset.reviewScene);
+      }
+    };
+    window.addEventListener(REVIEW_SCENE_EVENT, handleSceneChange);
+    document.addEventListener("click", handlePrototypeClick, true);
+    return () => {
+      window.removeEventListener(REVIEW_SCENE_EVENT, handleSceneChange);
+      document.removeEventListener("click", handlePrototypeClick, true);
+    };
+  }, [annotated]);
+
+  if (!annotated) return null;
+
+  const current = reviewScenarioGuides.find(item => item.key === currentKey) || reviewScenarioGuides[0];
+
+  return ReactDOM.createPortal(
+    <React.Fragment>
+      <button className="review-guide-toggle" onClick={() => setOpen(value => !value)}>
+        {open ? "收起说明" : "场景说明"}
+      </button>
+      {open && (
+        <aside className="review-guide-panel">
+          <div className="review-guide-head">
+            <h2>场景需求说明</h2>
+            <button className="review-guide-close" onClick={() => setOpen(false)}>×</button>
+          </div>
+          <div className="review-current-scene" aria-live="polite">
+            <span>当前场景</span>
+            <strong>{current.number} {current.title}</strong>
+          </div>
+          <div className="review-guide-section logic">
+            <strong>场景逻辑</strong>
+            {current.logic}
+          </div>
+          <div className="review-guide-section">
+            <strong>页面功能重点</strong>
+            <ol className="review-guide-points">{current.points.map((point, index) => <li key={index}>{point}</li>)}</ol>
+          </div>
+          <div className="review-guide-section boundary">
+            <strong>端侧与系统边界</strong>
+            {current.boundary}
+          </div>
+          <div className="review-guide-section note">
+            <strong>补充说明</strong>
+            {current.note}
+          </div>
+          <p className="review-guide-tip">点击左侧原型中的卡片、页签、详情入口或审批按钮，右侧说明将自动切换到对应场景。</p>
+        </aside>
+      )}
+    </React.Fragment>,
+    document.body
+  );
+}
+
+/* ========== App ========== */
+function getReviewSceneForScreen(targetScreen) {
+  if (!targetScreen || targetScreen.name === "list") return "list";
+  if (targetScreen.name === "historyDetail" || targetScreen.name === "detail") return "split-5-history";
+  if (targetScreen.name === "transfer") return "split-1";
+  if (targetScreen.item) return getReviewSceneForListItem(targetScreen.item);
+  return "list";
+}
+
+function App() {
+  const [screen, setScreen] = useState(getReviewInitialScreen);
+
+  useEffect(() => {
+    if (!screen.initialScroll) return undefined;
+    const timer = setTimeout(() => {
+      const content = document.querySelector(".content");
+      if (content) content.scrollTop = screen.initialScroll;
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [screen.name, screen.initialScroll]);
+
+  const openScreen = (nextScreen, reviewScene) => {
+    setReviewSceneContext(reviewScene);
+    setScreen(previousScreen => ({ ...nextScreen, returnScreen: previousScreen }));
+  };
+  const goList = () => { setReviewSceneContext("list"); setScreen({ name: "list", initialTab: "todo" }); };
+  const goBack = () => {
+    const previousScreen = screen.returnScreen || { name: "list", initialTab: "todo" };
+    setReviewSceneContext(getReviewSceneForScreen(previousScreen));
+    setScreen(previousScreen);
+  };
+  const goApprove = (item) => openScreen({ name: "approve", item }, getReviewSceneForListItem(item));
+  const goTransfer = (item) => openScreen({ name: "transfer", item }, "split-1");
+  const goDetail = (item) => openScreen({ name: "detail", item }, "split-5-history");
+  const goHistoryDetail = (data) => openScreen({ name: "historyDetail", data }, "split-5-history");
+  const goApproveIncomeConfirm = (item) => openScreen({ name: "incomeConfirmApprove", item }, getReviewSceneForListItem(item));
+  const goIncomeConfirmDetail = (item) => openScreen({ name: "incomeConfirmDetail", item }, getReviewSceneForListItem(item));
+  const rememberListTab = (initialTab) => setScreen(currentScreen => currentScreen.name === "list" ? { ...currentScreen, initialTab } : currentScreen);
+
+  return (
+    <React.Fragment>
+      <ReviewGuide />
+      {screen.name === "list" && (
+        <ListPage
+          onApprove={goApprove}
+          onViewDetail={goDetail}
+          onTransfer={goTransfer}
+          onApproveIncomeConfirm={goApproveIncomeConfirm}
+          onViewIncomeConfirmDetail={goIncomeConfirmDetail}
+          initialTab={screen.initialTab || "todo"}
+          onTabChange={rememberListTab}
+          initialBatchMode={screen.initialBatchMode}
+          initialSelectedBatchIds={screen.initialSelectedBatchIds}
+        />
+      )}
+      {screen.name === "approve" && (
+        <ApprovalPage
+          item={screen.item}
+          onBack={goBack}
+          onSubmit={goList}
+          onViewHistory={goHistoryDetail}
+          initialTab={screen.initialTab}
+          initialSheet={screen.initialSheet}
+        />
+      )}
+      {screen.name === "transfer" && (
+        <TransferPage
+          onBack={goBack}
+          onConfirm={goList}
+        />
+      )}
+      {screen.name === "detail" && (
+        <DetailPage
+          item={screen.item}
+          onBack={goBack}
+          onViewHistory={goHistoryDetail}
+          initialTab={screen.initialTab}
+        />
+      )}
+      {screen.name === "historyDetail" && (
+        <HistorySplitDetailPage
+          data={screen.data}
+          onBack={goBack}
+        />
+      )}
+      {screen.name === "incomeConfirmApprove" && (
+        <IncomeConfirmApprovalPage
+          item={screen.item}
+          onBack={goBack}
+          onSubmit={goList}
+          initialTab={screen.initialTab}
+          initialSheet={screen.initialSheet}
+        />
+      )}
+      {screen.name === "incomeConfirmDetail" && (
+        <IncomeConfirmDetailPage
+          item={screen.item}
+          onBack={goBack}
+          initialTab={screen.initialTab}
+        />
+      )}
+    </React.Fragment>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById("app"));
+</script>
+</body>
+</html>
